@@ -1,0 +1,46 @@
+name: "Docs Feedback"
+description: "Report an issue or suggest an improvement for the ALR docs preview"
+title: "[Docs] <short summary>"
+labels: ["docs", "feedback"]
+body:
+  - type: input
+    id: doc_page
+    attributes:
+      label: Document path
+      description: Relative path (e.g., docs/overview.md)
+      placeholder: docs/overview.md
+    validations:
+      required: true
+  - type: input
+    id: section
+    attributes:
+      label: Section heading
+      placeholder: e.g., Registry Overview
+  - type: textarea
+    id: what_is_unclear
+    attributes:
+      label: What’s unclear or incorrect?
+      placeholder: Describe the issue and expected clarification or correction.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested change
+      placeholder: Provide a concrete improvement or example if possible.
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Impact
+      options:
+        - blocking
+        - significant
+        - minor
+      default: 2
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I verified the link(s) and section name are correct
+          required: true
