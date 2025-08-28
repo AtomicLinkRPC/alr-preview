@@ -300,7 +300,7 @@ The client makes an async call with a medium sized message containing 9 fields. 
 | **ALR**  |       2,209,922 |            9,340,670 |
 
 ### RoundTripLargeMsgAsyncCB
-The client makes an async call with a large message containing 15 fields (with both the above small and medium sized messages nested). For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a large message containing 14 fields (with both the above small and medium sized messages nested). For each received call, the server echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -400,7 +400,7 @@ The client makes an async call with a medium sized message containing 9 fields. 
 | **ALR**  |        1,351,906 |           2,312,646 |
 
 ### RoundTripLargeMsgAsyncCB
-The client makes an async call with a large message containing 15 fields (with both the above small and medium sized messages nested). For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a large message containing 14 fields (with both the above small and medium sized messages nested). For each received call, the server echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|

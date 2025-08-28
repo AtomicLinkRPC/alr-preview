@@ -101,7 +101,7 @@ int main()
     std::cout << "Service listening on port 55100..." << std::endl;
 
     return alr::ConnectionInfo()
-        .setListenAddress("0.0.0.0:55100")
+        .setListenAddress("0.0.0.0:55100") // Default can be set in cfg file
         .listen();
 }
 ```
@@ -162,16 +162,18 @@ public:
 
 int main()
 {
-    alr::Endpoint ep = alr::ConnectionInfo().setConnectAddress("localhost:55100").connect();
+    alr::Endpoint ep = alr::ConnectionInfo()
+        .setConnectAddress("localhost:55100")
+        .connect();
 
     // Make the async call. It returns immediately.
-    alr::Async<std::string> result = Greeter::SayHelloAsync("async world");
+    alr::AsyncVal<std::string> result = Greeter::SayHelloAsync("async world");
 
     std::cout << "Async call sent." << std::endl;
 
     // Use .then() to provide a callback for when the reply arrives.
     result.then([result]() {
-        if (res.isSuccess()) {
+        if (result.isSuccess()) {
             std::cout << "Service replied: " << result.value() << std::endl;
         }
     });

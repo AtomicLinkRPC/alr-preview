@@ -1,8 +1,12 @@
 # AtomicLinkRPC (ALR) — Document Preview
 
-![ALR Logo](docs/assets/images/alr-logo-small.png)
-
 This repository is a documentation-only preview of AtomicLinkRPC, a C++ framework for high-performance, asynchronous, and scalable RPC.
+
+<p align="center">
+<img src="docs/assets/images/atom_by_atom.png" alt="Atom by Atom" width="75%"/>
+</p>
+
+---
 
 **What’s inside**
 - Overview & design goals

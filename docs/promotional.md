@@ -63,6 +63,3 @@ Adopting ALR can be a low-risk, incremental process:
 | **Discovery**            | External (Consul, etcd, etc.)        | Built-in registry/resolver           |
 | **Evolution**            | Manual versioning & deprecation      | Automatic structural negotiation     |
 | **Peak Efficiency**      | Tens/hundreds of thousands of calls/sec | Tens/hundreds of millions of calls/sec |
-
-## Call To Action
-Pilot ALR in a contained, high-traffic microservice. Measure the deltas in CPU usage, latency, and infrastructure cost. Use the results to build a phased adoption roadmap across your latency and bandwidth-critical services.

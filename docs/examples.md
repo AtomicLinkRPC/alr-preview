@@ -42,7 +42,7 @@ std::string Greeter::hello(const std::string& name) { return "Hello " + name; }
 int main()
 {
   alr::Endpoint ep = alr::ConnectionInfo()
-    .setConnectAddress("service-host:55100")
+    .setConnectAddress("service-host:55100") // Default can be set in cfg file
     .connect();
 
   auto r = Greeter::hello("World");
@@ -359,7 +359,7 @@ alr::Endpoint ep = alr::ConnectionInfo()
               best = &s;
           }
       }
-      return best? best->address : "";
+      return best ? best->address : "";
   })
   .connect();
 ```

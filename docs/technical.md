@@ -65,6 +65,8 @@ Upon connection establishment:
 3. One endpoint reorders its visitation/serialization tables to line up exactly with remote ordering (ensuring symmetrical numerically indexed layout).
 4. Result: runtime serialization can omit per-field tags—only raw values emitted in deterministic order. Non-overlapping parameters / fields are skipped.
 
+After receiving the remote schema, the remainder of the steps typically take less than 1ms.
+
 ---
 ## 4. Serialization Strategy
 | Feature | Implementation |

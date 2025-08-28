@@ -442,7 +442,7 @@ Max Alloc Msgs:   | Max Send Alloc | Max Recv Alloc
 
 #### Start of test LargeStructSendReplyAsyncVoid ####
 Description:       A single client uses 10 threads to invoke 20,000,000 total async calls
-                   with a large 15 field struct (with nested structs) to the service.
+                   with a large 14 field struct (with nested structs) to the service.
                    The service then invokes another async call for each struct
                    back to the client.
 
@@ -564,7 +564,7 @@ Remote batch histogram:
 #### Start of test LargeStructVectorParamAsyncVoid ####
 Description:       A single client uses 10 endpoints with each using 10 threads to invoke
                    100,000 total async calls with a vector parameter containing
-                   1,000 large 15 field structs (with nested structs).
+                   1,000 large 14 field structs (with nested structs).
 
 #### Results for:  LargeStructVectorParamAsyncVoid ####
 Duration:          66.4 s
@@ -714,7 +714,7 @@ Remote batch histogram:
 
 #### Start of test LargeStructRTAsyncVal ####
 Description:       A single client uses 10 endpoints with each using 10 threads to invoke
-                   50,000,000 total Async<T> calls to round-trip a large 15 field
+                   50,000,000 total Async<T> calls to round-trip a large 14 field
                    struct (with nested structs). For each round-tripped struct,
                    the client invokes a user-supplied callback.
 
