@@ -48,6 +48,7 @@ This repository is a documentation-only preview of AtomicLinkRPC, a C++ framewor
 ## Questions & Feedback
 - Use the [issue template](./.github/ISSUE_TEMPLATE/feedback.yml) and include the doc page, section, and suggestions.
 - Prefer actionable feedback (missing details, unclear steps, incorrect claims).
+- For additional information, email <alr-project@alienworks.com>.
 
 ---
 
