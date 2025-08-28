@@ -1,7 +1,7 @@
 # AtomicLinkRPC (ALR) - Promotional Brief
 
 ## Executive Snapshot
-AtomicLinkRPC (ALR) is a high-performance C++ remote procedure call (RPC) framework that delivers orders-of-magnitude performance gains over legacy stacks like gRPC while radically simplifying the developer workflow. ALR eliminates schema friction, strips away protocol overhead, and includes built-in dynamic service discovery and load balancing. The result is an acceleration of both product development velocity and infrastructure efficiency.
+AtomicLinkRPC (ALR) is a high-performance C++ remote procedure call (RPC) framework that delivers orders-of-magnitude performance gains over traditional stacks like gRPC while radically simplifying the developer workflow. ALR eliminates schema friction, strips away protocol overhead, and includes built-in dynamic service discovery and load balancing. The result is an acceleration of both product development velocity and infrastructure efficiency.
 
 ## Core Differentiators
 | Dimension                 | ALR Advantage                                                              |

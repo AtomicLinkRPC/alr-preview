@@ -276,7 +276,7 @@ lsVec.resize(100, CreateLargeStruct());
 ## 1. Localhost (Loopback)
 
 ### RoundTripStringAsyncCB
-The client makes an async call with a message containing a single short string. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a message containing a single short string. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -284,7 +284,7 @@ The client makes an async call with a message containing a single short string. 
 | **ALR**  |        3,761,550 |          16,040,522 |
 
 ### RoundTripSmallMsgAsyncCB
-The client makes an async call with a small message containing two fields. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a small message containing two fields. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -292,7 +292,7 @@ The client makes an async call with a small message containing two fields. For e
 | **ALR**  |        3,614,312 |          15,766,951 |
 
 ### RoundTripMediumMsgAsyncCB
-The client makes an async call with a medium sized message containing 9 fields. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a medium sized message containing 9 fields. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -300,7 +300,7 @@ The client makes an async call with a medium sized message containing 9 fields. 
 | **ALR**  |       2,209,922 |            9,340,670 |
 
 ### RoundTripLargeMsgAsyncCB
-The client makes an async call with a large message containing 14 fields (with both the above small and medium sized messages nested). For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a large message containing 14 fields (with both the above small and medium sized messages nested). For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -308,7 +308,7 @@ The client makes an async call with a large message containing 14 fields (with b
 | **ALR**  |        1,061,590 |           4,895,209 |
 
 ### RoundTripSmallMsgListAsyncCB
-The client makes an async call with a message containing 100 small message that each contain two fields each. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a message containing 100 small messages that each contain two fields each. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -316,7 +316,7 @@ The client makes an async call with a message containing 100 small message that 
 | **ALR**  |          188,431 |             922,344 |
 
 ### RoundTripMediumMsgListAsyncCB
-The client makes an async call with a message containing 100 medium sized messages containing 9 fields each. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a message containing 100 medium sized messages containing 9 fields each. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -324,7 +324,7 @@ The client makes an async call with a message containing 100 medium sized messag
 | **ALR**  |           26,997 |             163,272 |
 
 ### RoundTripLargeMsgListAsyncCB
-The client makes an async call with a message containing 100 large messages with 14 fields (with both the above small and medium sized messages nested) each. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a message containing 100 large messages with 14 fields (with both the above small and medium sized messages nested) each. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -332,7 +332,7 @@ The client makes an async call with a message containing 100 large messages with
 | **ALR**  |           14,391 |              63,107 |
 
 ### StreamSmallMsgFromServer
-The client requests the server to stream small messages to the client.
+The client requests the service to stream small messages to the client.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -340,7 +340,7 @@ The client requests the server to stream small messages to the client.
 | **ALR**  |       14,288,968 |          65,472,788 |
 
 ### StreamMediumMsgFromServer
-The client requests the server to stream medium sized messages to the client.
+The client requests the service to stream medium sized messages to the client.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -348,7 +348,7 @@ The client requests the server to stream medium sized messages to the client.
 | **ALR**  |        4,910,973 |          22,174,210 |
 
 ### StreamLargeMsgFromServer
-The client requests the server to stream large messages to the client.
+The client requests the service to stream large messages to the client.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -364,7 +364,7 @@ The client requests the server to stream large messages to the client.
 | **ALR**  |            899,438 |
 
 ### DocumentProcessingCB
-100 documents are streamed concurrently via client-side reactors. Each document is sent in 10,000 chunks. The server processes and returns results per chunk (AI suggested test).
+100 documents are streamed concurrently via client-side reactors. Each document is sent in 10,000 chunks. The service processes and returns results per chunk (AI suggested test).
 
 |          | 100 Threads (RPC/s) |
 | -------- | -------------------:|
@@ -376,7 +376,7 @@ The client requests the server to stream large messages to the client.
 The following tests were performed between two physical hosts connected by a 2.5Gbps Ethernet connection.
 
 ### RoundTripStringAsyncCB
-The client makes an async call with a message containing a single short string. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a message containing a single short string. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -384,7 +384,7 @@ The client makes an async call with a message containing a single short string. 
 | **ALR**  |        3,768,269 |           7,245,383 |
 
 ### RoundTripSmallMsgAsyncCB
-The client makes an async call with a small message containing two fields. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a small message containing two fields. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -392,7 +392,7 @@ The client makes an async call with a small message containing two fields. For e
 | **ALR**  |        3,322,942 |           7,160,185 |
 
 ### RoundTripMediumMsgAsyncCB
-The client makes an async call with a medium sized message containing 9 fields. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a medium sized message containing 9 fields. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -400,7 +400,7 @@ The client makes an async call with a medium sized message containing 9 fields. 
 | **ALR**  |        1,351,906 |           2,312,646 |
 
 ### RoundTripLargeMsgAsyncCB
-The client makes an async call with a large message containing 14 fields (with both the above small and medium sized messages nested). For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a large message containing 14 fields (with both the above small and medium sized messages nested). For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -408,7 +408,7 @@ The client makes an async call with a large message containing 14 fields (with b
 | **ALR**  |          725,205 |           1,023,620 |
 
 ### RoundTripSmallMsgListAsyncCB
-The client makes an async call with a message containing 100 small message that each contain two fields each. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a message containing 100 small messages that each contain two fields each. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -416,7 +416,7 @@ The client makes an async call with a message containing 100 small message that 
 | **ALR**  |           39,257 |             174,482 |
 
 ### RoundTripMediumMsgListAsyncCB
-The client makes an async call with a message containing 100 medium sized messages containing 9 fields each. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a message containing 100 medium sized messages containing 9 fields each. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -424,7 +424,7 @@ The client makes an async call with a message containing 100 medium sized messag
 | **ALR**  |           25,930 |              31,688 |
 
 ### RoundTripLargeMsgListAsyncCB
-The client makes an async call with a message containing 100 large messages with 14 fields (with both the above small and medium sized messages nested) each. For each received call, the server echos back the same message to the client, where a callback is invoked.
+The client makes an async call with a message containing 100 large messages with 14 fields (with both the above small and medium sized messages nested) each. For each received call, the service echos back the same message to the client, where a callback is invoked.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -432,7 +432,7 @@ The client makes an async call with a message containing 100 large messages with
 | **ALR**  |           10,797 |              13,728 |
 
 ### StreamSmallMsgFromServer
-The client requests the server to stream small messages to the client.
+The client requests the service to stream small messages to the client.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -440,7 +440,7 @@ The client requests the server to stream small messages to the client.
 | **ALR**  |        9,634,001 |          13,994,657 |
 
 ### StreamMediumMsgFromServer
-The client requests the server to stream medium sized messages to the client.
+The client requests the service to stream medium sized messages to the client.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -448,7 +448,7 @@ The client requests the server to stream medium sized messages to the client.
 | **ALR**  |        3,571,516 |           3,574,381 |
 
 ### StreamLargeMsgFromServer
-The client requests the server to stream large messages to the client.
+The client requests the service to stream large messages to the client.
 
 |          | 1 Thread (RPC/s) | 100 Threads (RPC/s) |
 | -------- | ----------------:| -------------------:|
@@ -464,7 +464,7 @@ The client requests the server to stream large messages to the client.
 | **ALR**  |            488,201 |
 
 ### DocumentProcessingCB
-100 documents are streamed concurrently via client-side reactors. Each document is sent in 10,000 chunks. The server processes and returns results per chunk (AI suggested test).
+100 documents are streamed concurrently via client-side reactors. Each document is sent in 10,000 chunks. The service processes and returns results per chunk (AI suggested test).
 
 |          | 100 Threads (RPC/s) |
 | -------- | -------------------:|
