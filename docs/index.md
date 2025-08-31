@@ -33,3 +33,4 @@ Notes
 
 - This is a docs-only preview; APIs and performance may change.
 - If a link is broken, please file feedback using the template in the repository.
+- For additional information, email <alr-project@alienworks.com>.
