@@ -2,29 +2,6 @@
 
 Practical, self‑contained examples showcasing core ALR concepts. Each code block omits generated headers (`*_gen.h`) for brevity—these are produced automatically by the ALR compiler once you derive from `alr::EndpointClass` or `alr::CommonEndpointClass`.
 
-<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
-
-<!-- code_chunk_output -->
-
-- [AtomicLinkRPC Examples](#atomiclinkrpc-examples)
-  - [1. Minimal Synchronous Call](#1-minimal-synchronous-call)
-  - [2. Asynchronous Result (`alr::Async<T>`)](#2-asynchronous-result-alrasynct)
-  - [3. Stateful Service with Instance Management](#3-stateful-service-with-instance-management)
-  - [4. Passing Object References (`alr::ClassRef<T> / T&`)](#4-passing-object-references-alrclassreft--t)
-  - [5. Chained Asynchronous Remote Computation (`alr::AsyncRef<T>`)](#5-chained-asynchronous-remote-computation-alrasyncreft)
-  - [6. Cancellation & Timeouts](#6-cancellation--timeouts)
-  - [7. Bulk Data Transfer (`alr::ByteBuffer`)](#7-bulk-data-transfer-alrbytebuffer)
-  - [8. Remote Thread Affinity (`alr::RemoteThread` / `RemoteThreadPool`)](#8-remote-thread-affinity-alrremotethread--remotethreadpool)
-  - [9. Service Registry & Discovery](#9-service-registry--discovery)
-  - [10. Explicit Error Handling (`alr::Result<T,E>`)](#10-explicit-error-handling-alrresultte)
-  - [11. Call Context Cancellation / Timeout Awareness](#11-call-context-cancellation--timeout-awareness)
-  - [12. Mixing Sync & Async Transparently](#12-mixing-sync--async-transparently)
-  - [13. Symmetric Classes for Peer-to-Peer (`alr::CommonEndpointClass`)](#13-symmetric-classes-for-peer-to-peer-alrcommonendpointclass)
-  - [Tips & Patterns](#tips--patterns)
-  - [Next Steps](#next-steps)
-
-<!-- /code_chunk_output -->
-
 ---
 ## 1. Minimal Synchronous Call
 ```cpp
@@ -211,18 +188,18 @@ int main()
     .setConnectAddress("service-host:55100")
     .connect();
 
-  Image img = load(/*...path...*/);
+  Image srcImg = load(/*...path...*/);
   
   // Following 3 calls return asynchronously
-  auto ref1 = ImageSvc::scale(img, 0.5f, 0.5f);
-  auto ref2 = ImageSvc::sharpen(ref1, 0.7f);
-  auto ref3 = ImgSvc::encode(ref2, 90);
+  auto img1 = ImageSvc::scale(srcImg, 0.5f, 0.5f);
+  auto img2 = ImageSvc::sharpen(img1, 0.7f);
+  auto img3 = ImgSvc::encode(img2, 90);
 
   // Nothing transferred back unless we call any of the results' value() methods:
-  const auto& finalImg = ref3.value(); // Only ref3 image sent back over the wire
+  const auto& finalImg = img3.value(); // Only img3 image sent back over the wire
   printf("pixels=%zu\n", finalImg.px.size());
 
-  // Remote images will only go out of scope until ref1, ref2 and ref3 go out of scope here (and remotely)
+  // Remote images will only go out of scope until img1, img2 and img3 go out of scope here (and remotely)
 }
 ```
 Intermediate results stay remote—bandwidth saved.
@@ -469,12 +446,14 @@ int main()
 }
 ```
 Notes:
+
 - For `alr::CommonEndpointClass`, codegen places the remote declaration under a root namespace (default `remote`).
 - Use this pattern for symmetric applications (e.g., peer-to-peer chat, collaborative tools) where either side can call into the other with the same interface.
 - `alr::EndpointClass` and `alr::CommonEndpointClass` can be used side-by-side, allowing mixed cases.
 
 ---
 ## Tips & Patterns
+
 - Keep interfaces idiomatic; avoid artificial DTO layers unless needed for domain clarity.
 - Use `AsyncRef<T>` when chaining remote operations to suppress unnecessary round‑trips.
 - Always rely on framework tracking—even `AsyncVoid` failures transition endpoint to fault state (no silent loss).

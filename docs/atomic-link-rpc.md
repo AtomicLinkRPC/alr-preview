@@ -2,39 +2,10 @@
 
 Consolidated overview, technical deep dive, examples, user guidance, API references, benchmarks, and promotional positioning for AtomicLinkRPC (ALR).
 
-<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
-
-<!-- code_chunk_output -->
-
-- [AtomicLinkRPC Comprehensive Guide](#atomiclinkrpc-comprehensive-guide)
-  - [1. Overview](#1-overview)
-  - [2. Core Concepts](#2-core-concepts)
-  - [3. Quick Start Snippets](#3-quick-start-snippets)
-  - [4. Architecture Highlights](#4-architecture-highlights)
-  - [5. Service Registry Essentials](#5-service-registry-essentials)
-  - [6. Performance Snapshot](#6-performance-snapshot)
-  - [7. User Guide Essentials](#7-user-guide-essentials)
-  - [8. API Surface (Abbreviated)](#8-api-surface-abbreviated)
-  - [9. Technical Deep Dive (Condensed)](#9-technical-deep-dive-condensed)
-  - [10. Evolution Model](#10-evolution-model)
-  - [11. Performance Tuning Quick Table](#11-performance-tuning-quick-table)
-  - [12. Diagnostics \& Observability](#12-diagnostics--observability)
-  - [13. Registry Policy Patterns](#13-registry-policy-patterns)
-  - [14. Promotional Angles (Recap)](#14-promotional-angles-recap)
-  - [15. Migration Outline](#15-migration-outline)
-  - [16. Benchmark Interpretation Aids](#16-benchmark-interpretation-aids)
-  - [17. Exception Summary](#17-exception-summary)
-  - [18. Security](#18-security)
-  - [19. Future Directions](#19-future-directions)
-  - [20. Closing Summary](#20-closing-summary)
-
-<!-- /code_chunk_output -->
-
-
-
 ---
 ## 1. Overview
 AtomicLinkRPC (ALR) is a native C++ RPC framework engineered for:
+
 - Extreme throughput / low latency (tens to hundreds of millions RPC/s achievable in stress tests)
 - Native ergonomics (headers are the interface; no IDL)
 - Seamless evolution (schema negotiation eliminates fragile versioning)
@@ -72,7 +43,7 @@ std::string Greeter::hello(const std::string& n){ return "Hello " + n; }
 // client.cpp
 int main()
 {
-  alr::Endpoint ep = alr::ConnectionInfo().connect();
+  alr::Endpoint ep = alr::ConnectionInfo().setConnectAddress("...").connect();
   auto s = Greeter::hello("World");
   auto a = Greeter::helloAsync("Async");
   a.then([a]{ printf("%s\n", a.value().c_str()); });
@@ -108,6 +79,7 @@ peer.post("hi from you");
 
 ---
 ## 5. Service Registry Essentials
+
 - Backend sets service metadata (name, region, zone, tags) and registers via registry address.
 - Clients specify desired service + optional locality; registry returns candidate set.
 - Custom resolver callback chooses instance (least active threads, lowest memory usage, tag filtering, etc.).
@@ -154,6 +126,7 @@ For full details refer to `api-reference.md`.
 
 ---
 ## 9. Technical Deep Dive (Condensed)
+
 - **Handshake:** Builds intersection schema; one side reorders tables -> tagless encoding.
 - **Serialization:** Visitors serialize directly into contiguous buffers; struct fields omitted if not shared by both sides.
 - **Batching:** `maxBatchMsgs`, `maxMsgBatchSize`, time budget combine to shape flush rhythm; aggregator coalesces multi-thread buffers.
@@ -203,12 +176,14 @@ For full details refer to `api-reference.md`.
 
 ---
 ## 14. Promotional Angles (Recap)
+
 - Replace multi-layer RPC stack with lean native path → fewer cores, reduced latency budgets.
 - Accelerate refactors & API iteration (no brittle IDL migrations).
 - Built-in control plane (registry) simplifies platform architecture.
 
 ---
 ## 15. Migration Outline
+
 1. Select existing service boundary.
 2. Derive classes from `EndpointClass`; remove intermediate DTO wrappers if present.
 3. Build, run generation.
@@ -238,6 +213,7 @@ Enable TLS via `ConnectionInfo::setOpenSsl(...)`. Minimal overhead added relativ
 
 ---
 ## 19. Future Directions
+
 - Additional language bindings.
 - Extended runtime introspection & tracing export.
 - Richer generated capability metadata dumping (debug tooling).

@@ -1,0 +1,49 @@
+site_name: AtomicLinkRPC
+theme:
+  name: material
+  features:
+  - toc.integrate
+  palette:
+  - scheme: default
+    primary: indigo
+    accent: orange
+    toggle:
+      icon: material/weather-night
+      name: Switch to dark mode
+  - scheme: slate
+    primary: indigo
+    accent: orange
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to light mode
+plugins:
+  - search
+nav:
+  - Welcome: index.md
+  - Overview: overview.md
+  - User Guide: user-guide.md
+  - Examples: examples.md
+  - Technical Documentation: technical.md
+  - API Reference: api-reference.md
+  - Benchmarks: benchmarks.md
+  - Promotional: promotional.md
+  - Comprehensive Guide: atomic-link-rpc.md
+  - Raw Results (localhost): assets/results/raw_results_localhost.md
+  - Raw Results (remote): assets/results/raw_results_remote.md
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      guess_lang: false
+      line_spans: __span
+      pygments_style: github-dark
+      pygments_lang_class: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed
+  - pymdownx.inlinehilite
+extra_css:
+  - assets/css/extra.css

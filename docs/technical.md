@@ -1,54 +1,19 @@
 # AtomicLinkRPC Technical Documentation
 
-<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
-
-<!-- code_chunk_output -->
-
-- [AtomicLinkRPC Technical Documentation](#atomiclinkrpc-technical-documentation)
-  - [1. Design Objectives](#1-design-objectives)
-  - [2. Compilation & Code Generation](#2-compilation--code-generation)
-  - [3. Handshake Phase](#3-handshake-phase)
-  - [4. Serialization Strategy](#4-serialization-strategy)
-  - [5. Message Framing & Batching](#5-message-framing--batching)
-  - [6. Threading & Continuations](#6-threading--continuations)
-  - [7. Async Model](#7-async-model)
-  - [8. Distributed Object Lifetime Management](#8-distributed-object-lifetime-management)
-  - [9. Service Registry & Discovery](#9-service-registry--discovery)
-    - [9.1 Roles](#91-roles)
-    - [9.2 Registration Lifecycle](#92-registration-lifecycle)
-    - [9.3 Load Resolution](#93-load-resolution)
-    - [9.4 Locality Awareness](#94-locality-awareness)
-  - [10. Error & Fault Model](#10-error--fault-model)
-  - [11. Performance Mechanics](#11-performance-mechanics)
-    - [11.1 Batching Parameters (Excerpt)](#111-batching-parameters-excerpt)
-    - [11.2 Flow Control Fields](#112-flow-control-fields)
-    - [11.3 Async Throttle](#113-async-throttle)
-    - [11.4 Lock-Free Structures](#114-lock-free-structures)
-  - [12. Latency Sampling & Instrumentation](#12-latency-sampling--instrumentation)
-  - [13. Memory Management](#13-memory-management)
-  - [14. Security Layer (TLS)](#14-security-layer-tls)
-  - [15. Evolution & Compatibility Rules](#15-evolution--compatibility-rules)
-  - [16. Failure Recovery](#16-failure-recovery)
-  - [17. Capability Lookup (Version Awareness)](#17-capability-lookup-version-awareness)
-  - [18. Future Extension Points (Indicative)](#18-future-extension-points-indicative)
-  - [19. Key Public Interfaces Snapshot](#19-key-public-interfaces-snapshot)
-  - [20. Summary](#20-summary)
-
-<!-- /code_chunk_output -->
-
 ## 1. Design Objectives
 | Objective | Approach |
 |-----------|----------|
-| Zero-friction API evolution | Handshake schema negotiation + visitor table remap |
 | Max throughput & low latency | Direct TCP, opportunistic batching, lock-free hot paths |
 | Deterministic threading | Per-thread queue slots + continuation handling |
 | Transparent distributed objects | ID-based lifetime managed references (ClassRef) |
 | Simple async semantics | Return type based design (`Async<T>`, `AsyncRef<T>`, `AsyncVoid`) |
+| Zero-friction API evolution | Handshake schema negotiation + visitor table remap |
 | Built-in service discovery & load balancing | Native registry + client resolver callback |
 
 ---
 ## 2. Compilation & Code Generation
 The ALR compiler (libclang powered) scans user headers searching for classes inheriting `alr::EndpointClass`. For each:
+
 1. Collect class metadata: method names, static vs instance, parameter types, return types, struct & enum dependencies.
 2. Emit generated files (`*_gen.h / *_gen.cpp`) implementing:
    - Remote invocation stubs (caller side wrappers invoking serializer).
@@ -60,6 +25,7 @@ The ALR compiler (libclang powered) scans user headers searching for classes inh
 ---
 ## 3. Handshake Phase
 Upon connection establishment:
+
 1. Each endpoint sends a compact schema descriptor (classes, methods, param & return type shapes, struct field lists, type kinds, ordering).
 2. Each side computes intersection sets (removes unknown artifacts) and produces mapping arrays from local indices to remote indices.
 3. One endpoint reorders its visitation/serialization tables to line up exactly with remote ordering (ensuring symmetrical numerically indexed layout).
@@ -86,6 +52,7 @@ After receiving the remote schema, the remainder of the steps typically take les
 ---
 ## 5. Message Framing & Batching
 Every logical RPC message contains at minimum: (a) total size, (b) message kind, (c) queue/thread slot, (d) target method ID (and optionally object ID). Invocations with no parameters can be as small as 4 bytes. Batching pipeline:
+
 1. Thread starts writing messages into per-thread staging buffer until thresholds (`maxBatchMsgs` / `maxMsgBatchSize`) reached. Notifies the aggregator thread after the first write with timestamp.
 2. Aggregator thread checks yield time reached for writing threads, attempts to acquire its staging buffer (will re-schedule on failed acquire). 
 3. If staging buffer successfully acquired, aggregator merges it into network batch (`mergeBatchBufferSize`) minimizing syscalls.
@@ -95,6 +62,7 @@ Flow control counters (send/recv flow units) throttle producers when remote cons
 
 ---
 ## 6. Threading & Continuations
+
 - Each endpoint allocates queue slots; threads claim slot indexes (odd = service, even = client orientation—ensuring cross symmetry).
 - Synchronous call blocking: while waiting for reply, the thread can *temporarily service inbound* framed calls targeting its slot (continuation). This reduces deadlock potential and median latency for dependent RPC chains.
 - `RemoteThread`: reserves single remote processing thread; all subsequent RPCs pinned, enabling reuse of remote thread-local state.
@@ -113,6 +81,7 @@ Cancellation: Caller sets cancellation flag; on remote side, user logic polls vi
 ---
 ## 8. Distributed Object Lifetime Management
 Each user-created instance of an `EndpointClass` obtains an object ID. Reference flows:
+
 1. Construction on local side -> local registry entry.
 2. Passing as parameter (ClassRef or reference) transmits object ID; remote side creates *proxy* (if necessary) linking to local lifetime.
 3. Reference counts incorporate: local references, remote references, in-flight RPC references.
@@ -128,6 +97,7 @@ Each user-created instance of an `EndpointClass` obtains an object ID. Reference
 | Client Resolver | Queries registry, optionally filters by service name, locality (region/zone), custom tags, then uses callback to pick candidate address; performs adaptive load distribution. |
 
 ### 9.2 Registration Lifecycle
+
 1. Backend connects to registry using `ConnectionInfo` with `setRegistryAddress()` + service metadata.
 2. Periodic re-registration / heartbeat updates load metrics (`InstanceLoadInfo`).
 3. On missed heartbeats (timeout window) registry prunes instance.
@@ -135,6 +105,7 @@ Each user-created instance of an `EndpointClass` obtains an object ID. Reference
 
 ### 9.3 Load Resolution
 Client resolution callback receives vector<ServiceInstance>. Example policies:
+
 - Least active threads
 - Lowest memory utilization ratio (allocated / max)
 - Geographically closest (exact region > same region different zone > cross region)
@@ -188,6 +159,7 @@ Critical components likely include:
 ---
 ## 12. Latency Sampling & Instrumentation
 `alr::PerfTimer` and `PerfResults`:
+
 - Wrap code region to capture send/recv deltas, batch histogram, queue stats, latency samples.
 - Latency capture: allocate vector, record microsecond durations, produce min/avg/max/percentiles (90/95/99). Useful to validate batching still within SLA.
 
@@ -199,6 +171,7 @@ for(int i=0;i<1000000;i++) Service::ping();
 
 ---
 ## 13. Memory Management
+
 - Pre-sized batch buffers reduce fragmentation.
 - ByteBuffer reuses large contiguous allocations; `waitForBufferReady()` coordinates reuse after async send completes.
 - AsyncRef values optionally materialize lazily to avoid duplicate large payload copies.
@@ -257,17 +230,20 @@ if (remoteCaps::hasMethod::cityguide::CityGuideService::getWeatherForecast()) {
 ```
 
 Guidelines:
+
 1. Never rely on catching `UndefinedRemoteMethodError` for normal version branching – treat it as a signal you *forgot* a capability guard.
 2. Remove legacy fields/methods only after telemetry shows negligible calls from versions lacking the replacement.
 3. Prefer additive evolution (add new field, keep old until sunset window ends; move deprecated members to struct tail with a comment so it is easy to track and maintain).
 
 ## 18. Future Extension Points (Indicative)
+
 - Cross-language bindings via same negotiated schema (Rust, Python modern re-implementation, etc.).
 - Observability hooks (structured tracing, OpenTelemetry exporters) leveraging existing queue stats & latency capture.
 
 ---
 ## 19. Key Public Interfaces Snapshot
 (See `api-reference.md` for per-symbol detail.)
+
 - Endpoint lifecycle: `Endpoint`, `EndpointCtx`, `EndpointConfig`, stats & queue introspection.
 - Async primitives: `Async<T>`, `AsyncVal<T>`, `AsyncRef<T>`, `AsyncVoid`.
 - Remotable classes: `EndpointClass`, `CommonEndpointClass`, `ClassRef<T>`.

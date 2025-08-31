@@ -2,27 +2,6 @@
 
 This guide provides practical steps and examples to help you get started with AtomicLinkRPC.
 
-<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
-
-<!-- code_chunk_output -->
-
-- [AtomicLinkRPC (ALR) - User Guide](#atomiclinkrpc-alr---user-guide)
-  - [1. Concepts Cheat‑Sheet](#1-concepts-cheatsheet)
-  - [2. Defining a Service](#2-defining-a-service)
-    - [Example: A Simple Greeter Service](#example-a-simple-greeter-service)
-  - [3. Ambient Context Patterns](#3-ambient-context-patterns)
-  - [4. Creating a Service](#4-creating-a-service)
-  - [5. Creating a Client and Making Calls](#5-creating-a-client-and-making-calls)
-    - [Synchronous Call](#synchronous-call)
-    - [Asynchronous Call](#asynchronous-call)
-  - [6. Stateful Services](#6-stateful-services)
-  - [7. Symmetric Services with `CommonEndpointClass`](#7-symmetric-services-with-commonendpointclass)
-
-<!-- /code_chunk_output -->
-
-
----
-
 ## 1. Concepts Cheat‑Sheet
 | Term | Meaning |
 |------|---------|

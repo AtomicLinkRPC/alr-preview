@@ -2,6 +2,27 @@
 
 This document consolidates representative performance characteristics of AtomicLinkRPC (ALR) versus gRPC and provides interpretive analysis. All numbers below are illustrative summaries based on previously gathered runs; exact results vary by hardware, build flags, network, and TLS settings.
 
+### Hardware Specifications
+#### Main system
+
+- Dell Alienware Aurora R16
+- Processor: Intel(R) Core(TM) i9-14900KF [Cores 24] [Logical processors 32]
+- Memory: 64 GB
+- OS: Windows 11
+
+#### Remote system
+
+- Microsoft Surface Laptop Studio
+- Processor: 11th Gen Intel(R) Core(TM) i7-11370H @ 3.30GHz
+- Memory: 32.0 GB
+- OS: Windows 11
+
+#### Network
+
+- 2.5Gbps physical Ethernet
+
+---
+
 All tests use a single client process and a single service process. The tests are executed both using `localhost` (loopback) as well as between two physical hosts connected with a 2.5Gbps Ethernet connection. Most tests have two versions, one using a single thread, and one using multiple threads in order to test scalability. Results with and without TLS (OpenSSL) are reported.
 
 There are 3 different sized messages (or structs in the case of ALR) used in the various tests. The sections below show how they are declared in the `proto` file for the gRPC tests, and in the header file in the case of ALR:
@@ -497,7 +518,7 @@ The client requests the service to stream large messages to the client.
 |--------|------------------|--------|
 | Protocol Stack | Direct TCP vs HTTP/2 + Protobuf | Removes framing & HPACK overhead, reduces syscalls |
 | Message Layout | Negotiated, tagless, tightly packed | Shrinks bytes on wire, fits more per cacheline |
-| Batching | Opportunistic multi-thread merge | 99% fewer `send()` syscalls in bursty workloads |
+| Batching | Opportunistic multi-thread merge | Fewer `send()` syscalls in high-throughput and high-rate workloads, often by more than 99%. |
 | Thread Model | Per-thread queues + continuation execution | Fewer context switches, no reactor loop complexity |
 | Serialization | Visitor tables over native types | Avoids getters/setters & dynamic dispatch layers |
 | Async Model | Simple return-type based | Minimal state machine overhead |
@@ -505,11 +526,13 @@ The client requests the service to stream large messages to the client.
 ---
 ## 8. Latency Considerations
 Even while maximizing throughput, ALR keeps p99 tails moderate by:
+
 - Bounded microsecond `maxBatchYieldUs` ensures batches don’t starve latency-sensitive calls.
 - Continuation execution lets blocked sync threads service incoming dependency RPCs inline.
 - Per-thread flow control avoids head-of-line blocking induced by a single saturated producer.
 
 For ultra-low tail tuning:
+
 - Reduce `maxBatchMsgs` / `maxMsgBatchSize`.
 - Lower `maxBatchYieldUs`.
 - Pin CPU affinity for hot threads.
@@ -525,6 +548,7 @@ For ultra-low tail tuning:
 
 ---
 ## 10. Measuring Your Own
+
 1. Wrap target loops in `alr::PerfTimer` with `PerfLogMode::BatchDetailed`.
 2. Enable TLS if production parity required.
 3. Vary concurrency: (a) number of calling threads, (b) remote `RemoteThreadPool` width, (c) multiple endpoints/ connections.
@@ -533,6 +557,7 @@ For ultra-low tail tuning:
 
 ---
 ## 11. Fairness & Caveats
+
 - Microbenchmarks isolate framework overhead; real workloads may narrow relative gains depending on business logic cost.
 - Extremely small messages exaggerate relative protocol overhead differences (ALR advantage grows). Larger payloads still benefit from reduced framing overhead and lock-free dispatch.
 - gRPC performance can vary with async vs sync API, thread pool tuning, and compression settings.
@@ -551,6 +576,7 @@ For ultra-low tail tuning:
 ---
 ## 13. Example Interpretation Walkthrough
 If you observe:
+
 - High `numNetSendBlocks` but low `sendBatchHistogram` counts at upper buckets → batching not effective (investigate shorter bursts / adjust thresholds).
 - Large gap between local and remote `numRecvMsgs` → potential flow control throttling or remote CPU saturation.
 - High latency percentiles with low message sizes → consider reducing batch yield or increasing endpoint connections.

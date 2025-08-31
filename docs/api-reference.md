@@ -2,32 +2,6 @@
 
 This document provides a reference for the key classes and types in the ALR framework.
 
-<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
-
-<!-- code_chunk_output -->
-
-- [AtomicLinkRPC (ALR) - API Reference](#atomiclinkrpc-alr---api-reference)
-  - [Supported Native C++ Types](#supported-native-c-types)
-  - [Core Classes & Lifecycle](#core-classes--lifecycle)
-    - [`alr::ConnectionInfo`](#alrconnectioninfo)
-    - [`alr::Endpoint`](#alrendpoint)
-    - [`alr::EndpointClass`](#alrendpointclass)
-    - [`alr::CommonEndpointClass`](#alrcommonendpointclass)
-  - [Ambient Context Variables](#ambient-context-variables)
-    - [`alr::EndpointCtx`](#alrendpointctx)
-    - [`alr::RemoteThreadPool`](#alrremotethreadpool)
-    - [`alr::RemoteThread`](#alrremotethread)
-    - [`alr::CallCtx`](#alrcallctx)
-  - [Asynchronous and Data Types](#asynchronous-and-data-types)
-    - [`alr::Async<T>`](#alrasynct)
-    - [`alr::AsyncRef<T>`](#alrasyncreft)
-    - [`alr::Result<T, E>`](#alrresultt-e)
-    - [`alr::ClassRef<T>`](#alrclassreft)
-    - [`alr::ByteBuffer`](#alrbytebuffer)
-  - [Exception Handling](#exception-handling)
-
-<!-- /code_chunk_output -->
-
 ## Supported Native C++ Types
 
 ALR natively supports a wide range of C++ types for use in your remote methods and structs:
@@ -82,6 +56,7 @@ alr::ConnectionInfo()
 Represents a network connection to a service/peer. It is the main handle for interacting with a connection.
 
 **Key Methods:**
+
 -   `bool isConnected()`: Checks if the connection is live.
 -   `void disconnect()`: Closes the connection.
 -   `bool waitForIdle(uint32_t timeoutMs)`: Waits for all outstanding operations to complete.
@@ -183,7 +158,7 @@ void MyService::longRunningTask() {
             // Clean up and return
             break;
         }
-        // ... do work ...
+        /* ... do work ... */
     }
 }
 ```

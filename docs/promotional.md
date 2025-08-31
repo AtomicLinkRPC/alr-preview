@@ -23,6 +23,7 @@ AtomicLinkRPC (ALR) is a high-performance C++ remote procedure call (RPC) framew
 | **Better User Experience**  | Lower latency, higher burst tolerance, and consistent tail behavior.     |
 
 ## Strategic Use Cases
+
 - High-frequency trading, real-time analytics, machine learning inference
 - Latency-sensitive microservices at scale
 - Edge and multi-region platforms needing locality-aware routing
@@ -30,6 +31,7 @@ AtomicLinkRPC (ALR) is a high-performance C++ remote procedure call (RPC) framew
 - Large-scale fan-out event and command dispatch systems
 
 ## Key Technology Highlights
+
 - Direct TCP transport with opportunistic batching (over 1,000 messages/write is common).
 - Tagless binary serialization via negotiated schema overlap.
 - Lock-free/wait-free hot paths and per-thread flow control.
@@ -50,6 +52,7 @@ As service meshes and layered protocols accumulate latency and complexity, raw e
 
 ## Migration Path
 Adopting ALR can be a low-risk, incremental process:
+
 1.  Identify a candidate C++ service boundary.
 2.  Inherit existing classes from `alr::EndpointClass` (no need to rewrite Data Transfer Objects).
 3.  Build the service (the ALR compiler runs automatically) and deploy it side-by-side with the existing RPC path.

@@ -2,7 +2,9 @@
 
 Welcome! This repository contains the documentation preview for the AtomicLinkRPC (ALR) project. ALR is a high-performance C++ framework for building asynchronous, scalable, and easy-to-use RPC applications.
 
-## Documentation
+![Atom by Atom](assets/images/atom_by_atom.png){ style="display:block; margin:auto; width:75%;" }
+
+---
 
 The documentation is structured to provide a comprehensive understanding of ALR, from a high-level overview to deep technical details.
 
@@ -28,5 +30,6 @@ The documentation is structured to provide a comprehensive understanding of ALR,
 
 ---
 Notes
+
 - This is a docs-only preview; APIs and performance may change.
 - If a link is broken, please file feedback using the template in the repository.
