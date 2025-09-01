@@ -1,11 +1,13 @@
 # Raw Performance Results (Localhost)
 
 The results below are from a subset of ALR's tests used during development:
+
 - This is a different set of tests than the "ALR vs. gRPC" tests.
 - In all tests, a single client process and a single service process is used.
 - All tests have TLS enabled (OpenSSL).
 
 ## Hardware Specifications
+
 - Dell Alienware Aurora R16
 - Processor: Intel(R) Core(TM) i9-14900KF [Cores 24] [Logical processors 32]
 - Memory: 64 GB

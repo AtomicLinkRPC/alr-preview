@@ -12,12 +12,16 @@ ALR natively supports a wide range of C++ types for use in your remote methods a
 -   **Enums**: Standard C++ `enum` and `enum class`.
 -   **Strings**: `std::string`.
 -   **Containers**:
+ 
     -   `std::vector<T>`
     -   `std::map<K, V>`
     -   `std::set<T>`
     -   `std::shared_ptr<T>`
     -   `std::optional<T>`
--   **Arrays**: C-style arrays of any other supported type (e.g., `int[10]`).
+-   **Arrays**:
+
+    - C-style arrays of any other supported type (e.g., `MyStruct[10]`).
+    - `std::array<T>` of any other supported type (`std::array<MyStruct, 100>`).
 -   **Structs**: User-defined `struct`s containing any combination of supported types.
 
 ---

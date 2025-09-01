@@ -16,6 +16,7 @@ The ALR compiler (libclang powered) scans user headers searching for classes inh
 
 1. Collect class metadata: method names, static vs instance, parameter types, return types, struct & enum dependencies.
 2. Emit generated files (`*_gen.h / *_gen.cpp`) implementing:
+
    - Remote invocation stubs (caller side wrappers invoking serializer).
    - Dispatch tables mapping remote IDs to user method entry points.
    - Serialization visitor implementations for encountered user types.
@@ -152,6 +153,7 @@ Clients can pre-filter by specifying desired region/zone in `ConnectionInfo`. Re
 
 ### 11.4 Lock-Free Structures
 Critical components likely include:
+
 - Multi-producer single-consumer ring buffers or queues for message staging.
 - Atomic refcount & state transitions for async values / distributed refs.
 - Wait-free fast-path for message enqueuing (fallback to blocking only under resource saturation).

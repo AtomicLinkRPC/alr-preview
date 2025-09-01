@@ -1,24 +1,28 @@
 # Raw Performance Results (Remote)
 
 The results below are from a subset of ALR's tests used during development:
+
 - This is a different set of tests than the "ALR vs. gRPC" tests.
 - In all tests, a single client process and a single service process is used.
 - All tests have TLS enabled (OpenSSL).
 
 ## Hardware Specifications
 ### Main system
+
 - Dell Alienware Aurora R16
 - Processor: Intel(R) Core(TM) i9-14900KF [Cores 24] [Logical processors 32]
 - Memory: 64 GB
 - OS: Windows 11
 
 ### Remote system
+
 - Microsoft Surface Laptop Studio
 - Processor: 11th Gen Intel(R) Core(TM) i7-11370H @ 3.30GHz
 - Memory: 32.0 GB
 - OS: Windows 11
 
 ### Network
+
 - 2.5Gbps physical Ethernet
 
 ## Run Summary
