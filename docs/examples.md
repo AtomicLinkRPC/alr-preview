@@ -348,11 +348,11 @@ alr::Endpoint ep = alr::ConnectionInfo()
 class Accounts : public alr::EndpointClass
 {
 public:
-  static alr::Result<int,std::string> balance(int accountId);
+  static alr::Result<int, std::string> balance(int accountId);
 };
 
 // service.cpp
-alr::Result<int, std::string> Accounts::balance(int id){
+alr::Result<int, std::string> Accounts::balance(int id) {
   if (id < 0) {
     return "invalid id"; // error
   }
@@ -382,7 +382,7 @@ Can be combined, e.g. `alr::Async<alr::Result<T,E>>`.
 // service.h
 class LongOps : public alr::EndpointClass {
 public:
- static alr::Result<std::string,std::string> run();
+ static alr::Result<LongOpResult, std::string> run();
 };
 
 // service.cpp

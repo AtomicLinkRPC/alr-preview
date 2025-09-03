@@ -26,7 +26,7 @@ This guide provides practical steps and examples to help you get started with At
 Defining an RPC service in ALR is as simple as creating a C++ class.
 
 1.  **Include the ALR header**: `#include "alr/endpoint.h"`
-2.  **Inherit from `alr::EndpointClass`**: This tells the ALR compiler to expose the class via RPC.
+2.  **Inherit from `alr::EndpointClass` or `alr::CommonEndpointClass`**: This tells the ALR compiler to expose the class via RPC.
 3.  **Define your methods**: Use static methods for stateless services or instance methods for stateful services.
 
 ### Example: A Simple Greeter Service

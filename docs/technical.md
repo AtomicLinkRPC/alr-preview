@@ -12,7 +12,7 @@
 
 ---
 ## 2. Compilation & Code Generation
-The ALR compiler (libclang powered) scans user headers searching for classes inheriting `alr::EndpointClass`. For each:
+The ALR compiler (libclang powered) scans user headers searching for classes inheriting `alr::EndpointClass` or `alr::CommonEndpointClass`. For each:
 
 1. Collect class metadata: method names, static vs instance, parameter types, return types, struct & enum dependencies.
 2. Emit generated files (`*_gen.h / *_gen.cpp`) implementing:

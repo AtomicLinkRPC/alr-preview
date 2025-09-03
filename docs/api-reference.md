@@ -18,10 +18,12 @@ ALR natively supports a wide range of C++ types for use in your remote methods a
     -   `std::set<T>`
     -   `std::shared_ptr<T>`
     -   `std::optional<T>`
+
 -   **Arrays**:
 
     - C-style arrays of any other supported type (e.g., `MyStruct[10]`).
-    - `std::array<T>` of any other supported type (`std::array<MyStruct, 100>`).
+    - `std::array<T>` of any other supported type (e.g., `std::array<MyStruct, 10>`).
+
 -   **Structs**: User-defined `struct`s containing any combination of supported types.
 
 ---
@@ -50,9 +52,9 @@ alr::Endpoint ep = alr::ConnectionInfo()
 // service.cpp
 alr::ConnectionInfo()
     .setServiceName("my-service")
-    .setRegistryAddress("registry.internal:5500")
-    .setPublicAddress("external.host:55100")
-    .setListenAddress("0.0.0.0:12345")
+    .setRegistryAddress("registry.host:5500")
+    .setPublicAddress("external.host:55101")
+    .setListenAddress("0.0.0.0:55101")
     .listen();
 ```
 
