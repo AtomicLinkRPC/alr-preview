@@ -28,6 +28,16 @@ The documentation is structured to provide a comprehensive understanding of ALR,
  
 -   **[Raw Results (remote)](./assets/results/raw_results_remote.md)**: Raw performance results from a subset of tests used during ALR development, using a physical 2.5Gbps Ethernet connection between two physical hosts.
 
+-   **Source Examples**: Source code from the CityGuide example:
+    - [client_main.cpp](./assets/city_guide_example_src/client_main.cpp.md)
+    - [city_guide_common.h](./assets/city_guide_example_src/city_guide_common.h.md)
+    - [client.h](./assets/city_guide_example_src/client.h.md)
+    - [client.cpp](./assets/city_guide_example_src/client.cpp.md)
+    - [service.h](./assets/city_guide_example_src/service.h.md)
+    - [service.cpp](./assets/city_guide_example_src/service.cpp.md)
+    - [service_main.cpp](./assets/city_guide_example_src/service_main.cpp.md)
+    - [alr.cfg](./assets/city_guide_example_src/alr.cfg.md)
+
 ---
 Notes
 

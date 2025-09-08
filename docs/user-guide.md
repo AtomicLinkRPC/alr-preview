@@ -72,7 +72,6 @@ A service listens for incoming connections and serves requests.
 // service_main.cpp
 #include "alr/endpoint.h"
 #include <iostream>
-#include <promise>
 
 int main()
 {
