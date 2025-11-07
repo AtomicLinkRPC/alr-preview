@@ -381,7 +381,7 @@ ALR supports several return modes for RPC methods, each optimized for different 
 
 - **`void`**: Blocks until completion, no return value
 - **`T`**: Blocks until completion, returns value of type `T`
-- **`Result<T, E>`**: Blocks until completion, returns either success (`T`) or error (`E`
+- **`Result<T, E>`**: Blocks until completion, returns either success (`T`) or error (`E`)
 - **`Status`**: Blocks until completion, returns success/failure status with optional error details
 
 **Asynchronous Modes:**

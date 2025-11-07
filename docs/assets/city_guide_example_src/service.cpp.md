@@ -25,22 +25,28 @@ mutex CityGuideService::_mutex;
 map<string, EndpointWeakRef> CityGuideService::_userSessions;
 
 
+// CityGuideService ctor, which will be called on the service endpoint side when
+// a client creates a CityGuideService instance from the client endpoint side.
 CityGuideService::CityGuideService(const string& username,
-                                 const string& cityName) :
+                                   const string& cityName) :
    _username(username),
    _cityName(cityName)
 {
    if (!_username.empty()) {
+      // Simulate user login by adding this session to the list of active users.
       lock_guard<mutex> lock(_mutex);
       _userSessions[_username] = EndpointCtx::getWeakRef();
    }
 }
 
 
+// Will be called once all remote, local and in-flight references to this
+// instance are gone.
 CityGuideService::~CityGuideService()
 {
    if (!_username.empty()) {
       lock_guard<mutex> lock(_mutex);
+      // This user is now logging out. Remove their session.
       _userSessions.erase(_username);
    }
 }
@@ -57,6 +63,7 @@ CityInfo CityGuideService::getCityInfo()
 }
 
 
+// A static method, can be called without an instance of CityGuideService.
 CityInfo CityGuideService::getCityInfoAnonymous(const string& cityName)
 {
    CityInfo city = {};
@@ -68,6 +75,8 @@ CityInfo CityGuideService::getCityInfoAnonymous(const string& cityName)
 }
 
 
+// Simulate looking up a point of interest at the specified location. We just
+// create a dummy point of interest for demonstration purposes.
 Result<PointOfInterest, string>
 CityGuideService::getPointOfInterest(const Location& location)
 {
@@ -83,6 +92,7 @@ CityGuideService::getPointOfInterest(const Location& location)
 }
 
 
+// An async method that returns a PointOfInterest.
 alr::Async<PointOfInterest>
 CityGuideService::getPointOfInterestAsync(const Location& location)
 {
@@ -98,6 +108,8 @@ CityGuideService::getPointOfInterestAsync(const Location& location)
 }
 
 
+// An async method that returns a Result<PointOfInterest, string>. Used to
+// handle error cases more explicitly.
 alr::Async<Result<PointOfInterest, string>>
 CityGuideService::getPointOfInterestAsyncResult(const Location& location)
 {
@@ -113,6 +125,11 @@ CityGuideService::getPointOfInterestAsyncResult(const Location& location)
 }
 
 
+// Note that ALR is not constrained to a "streaming" mode compared to some
+// other RPC frameworks. Instead, ALR uses a call-from-anywhere-to-anywhere
+// model, which allows for much more natural and dynamic interactions between
+// endpoints. To simulate "streaming" calls, we can simply loop and call into
+// the client multiple times.
 void CityGuideService::streamPointsOfInterest(CityGuideClient& client,
                                              const Area& area,
                                              bool logResults)
@@ -142,9 +159,9 @@ void CityGuideService::streamPointsOfInterest(CityGuideClient& client,
 Result<PointOfInterestReviews, string>
 CityGuideService::getPointOfInterestReviews(PointOfInterest poi)
 {
-   PointOfInterestReviews review = {};
-   review.poi = poi;
-   return review;
+   PointOfInterestReviews reviews = {};
+   reviews.poi = poi;
+   return reviews;
 }
 
 
@@ -160,10 +177,14 @@ CityGuideService::getPointsOfInterest(const Area& area)
       if (poi.isSuccess()) {
          pois.emplace_back(poi.value());
       } else {
+         // We can simply return a string here, which will implicitly set
+         // the `E` in `AsyncRef<Result<T, E>>`.
          return poi.error();
       }
    }
 
+   // We can return the vector here, which will implicitly set the `T` in
+   // `AsyncRef<Result<T, E>>`.
    return pois;
 }
 
@@ -265,14 +286,14 @@ WeatherForecast CityGuideService::getWeatherForecast(const Location& location)
       weather.location = location;
       weather.hour = 13 + idx;
       weather.temperature = (float)(70 + idx);
-      forecast.forecast.emplace_back(weather);
+      forecast.hourly.emplace_back(weather);
    }
 
    return forecast;
 }
 
 
-int64_t CityGuideService::doSomeWork(uint32 millsecs)
+int64_t CityGuideService::doSomeWork(uint32_t millsecs)
 {
    auto startTime = chrono::system_clock::now();
    this_thread::sleep_for(chrono::milliseconds(millsecs));
@@ -314,17 +335,16 @@ AsyncVoid RouteRecorderService::recordRouteLocation(const Location& location)
    }
    _lastLocation = location;
    _locationCount++;
-   this_thread::sleep_for(1000ms);
 }
 
 
 Async<CityRouteSummary> RouteRecorderService::getRouteSummary()
 {
    CityRouteSummary summary = {};
-   summary.pointCount = (uint32)_pointsOfInterest.size();
+   summary.pointCount = (uint32_t)_pointsOfInterest.size();
    summary.featureCount = 0;
-   summary.distance = (uint32)_totalDistance;
-   summary.elapsedTime = (uint32)chrono::duration_cast<chrono::seconds>
+   summary.distance = (uint32_t)_totalDistance;
+   summary.elapsedTime = (uint32_t)chrono::duration_cast<chrono::seconds>
                          (_endTime - _startTime).count();
    return summary;
 }

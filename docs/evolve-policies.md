@@ -406,32 +406,36 @@ namespace alr
 The `alr::EvolvePolicyViolation` struct contains comprehensive information:
 
 ```cpp
+// Policy violation details
 struct EvolvePolicyViolation
 {
-    std::string detail;         // Detailed description with fix suggestions
-    std::string methodName;     // Method being invoked
-    std::string structName;     // Structure containing the field (if applicable)
-    std::string valueName;      // Parameter or field name
-    std::string valueType;      // The type of the parameter, field or return value
-    std::string capsCheck;      // Suggested capability check (if applicable)
-    
-    std::string localEnumName;  // Local enum value name (if applicable)
-    std::string remoteEnumName; // Remote enum value name (if applicable)
-    int64_t enumValue;          // Enum value (if applicable)
-    
-    EvolvePolicy writePolicy;   // The write policy in effect
-    EvolvePolicy readPolicy;    // The read policy in effect
-    
-    bool remoteHas;            // Remote has this field
-    bool remoteHasEvolve;      // Remote field also has a policy
-    bool isReceived;           // Receiving (true) or sending (false)
-    bool isField;              // True if this is a field (not a param/return)
-    bool isReturn;             // True if this is part of the return value (direct or nested)
-    bool isReadRequired;       // Policy requires read
-    bool isWriteRequired;      // Policy requires write
-    bool isSet;                // Value was set (no longer the user-supplied default)
-    bool isWritten;            // Value was written
-    bool isRead;               // Value was read
+   std::string detail;         // A detailed description of the violation
+   std::string methodName;     // The method being invoked
+   std::string structName;     // The structure that contains the field
+   std::string valueName;      // The name of the parameter or field
+   std::string valueType;      // The type of the parameter, field or return
+   std::string capsCheck;      // If applicable, the remote capability check
+
+   std::string localEnumName;  // If applicable, name of the local enum value
+   std::string remoteEnumName; // If applicable, name of the remote enum value
+   uint64_t enumBits = 0;      // If applicable, all set enum bits
+   uint64_t enumValue = 0;     // If applicable, unsigned enum value
+   bool isNegative = false;    // True if underlying enum type is signed and
+                               // enum value is negative.
+
+   EvolvePolicy writePolicy = EvolvePolicy::Optional;
+   EvolvePolicy readPolicy = EvolvePolicy::Optional;
+
+   bool remoteHas = false;       // Remote has the value
+   bool remoteHasEvolve = false; // Remote value also has a policy
+   bool isReceived = false;      // Receiving, false if sending
+   bool isField = false;         // This is a field (not a param/return)
+   bool isReturn = false;        // This is (part of) the return value
+   bool isReadRequired = false;  // The policy requires a read
+   bool isWriteRequired = false; // The policy requires a write
+   bool isSet = false;           // The value was set (not default)
+   bool isWritten = false;       // The value was written
+   bool isRead = false;          // The value was read
 };
 ```
 

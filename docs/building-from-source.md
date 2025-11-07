@@ -18,8 +18,8 @@ Before building ALR, ensure your development environment meets the following req
 
 ### Optional Dependencies
 
-- **OpenSSL**: Required for TLS/SSL support (enabled by default)
-  - Can be disabled by setting `-DUSE_OPENSSL=OFF` during CMake configuration
+- **OpenSSL**: Required for TLS/SSL support (disabled by default)
+  - Can be enabled by setting `-DUSE_OPENSSL=ON` during CMake configuration
 
 ## Installing Dependencies
 
@@ -204,13 +204,12 @@ cmake --install build --config Release
 
 ## Build Output
 
-After a successful build, you'll find:
+After a successful build, in the `build/` directory you'll find:
 
-- **Executables**: `build/` directory
-    - `alr_codegen/alr_codegen` (or `alr_codegen/alr_codegen.exe` on Windows) - The ALR code generator
-    - Example applications (e.g., `bin/city_guide_client`, `bin/city_guide_service`)
-- **Generated Code**: `build/<project_name>/gen/cpp/` directories
-- **Build Artifacts**: `build/` directory
+- **Executables**:
+    - **The ALR code generator**: `alr_codegen/alr_codegen` (or `alr_codegen/alr_codegen.exe` on Windows)
+    - **Example applications**: (e.g., `bin/city_guide_client`, `bin/city_guide_service`)
+- **Generated Code**: `<project_name>/gen/cpp/` directories
 
 ## Selective Builds
 
@@ -248,14 +247,14 @@ cmake --build build --target help
 
 ## Build Configuration Options
 
-### Disabling OpenSSL/TLS Support
+### Enabling OpenSSL/TLS Support
 
-If you don't need TLS support:
+If you need TLS support:
 
 ```bash
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Release \
-  -DUSE_OPENSSL=OFF \
+  -DUSE_OPENSSL=ON \
   -G "Ninja"
 ```
 
@@ -326,6 +325,7 @@ dir %CLANG_PATH%\bin\libclang*  # Windows
 **Symptom**: Build fails with OpenSSL-related errors.
 
 **Solution**: 
+
 - On Windows with vcpkg: Ensure vcpkg is properly integrated
 - On Linux: Install `libssl-dev` or `openssl-devel`
 - On macOS: Set `OPENSSL_ROOT_DIR` to Homebrew's OpenSSL location
@@ -349,10 +349,11 @@ brew upgrade cmake
 
 ### Clang/LLVM Missing libclang
 
-**Symptom**: ALR codegen cannot find libclang even with `CLANG_PATH` set.
+**Symptom**: ALR codegen cannot find `libclang` even with `CLANG_PATH` set.
 
-**Solution**: Some LLVM distributions don't include libclang. You may need to:
-1. Build LLVM from source with libclang enabled
+**Solution**: Some LLVM distributions don't include `libclang`. You may need to:
+
+1. Build LLVM from source with `libclang` enabled
 2. Install a development package (e.g., `libclang-dev` on Ubuntu)
 3. Use a different LLVM distribution that includes libclang
 

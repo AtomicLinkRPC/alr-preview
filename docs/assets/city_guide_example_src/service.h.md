@@ -117,7 +117,7 @@ struct WeatherInfo
 struct WeatherForecast
 {
    std::string city;
-   std::vector<WeatherInfo> forecast;
+   std::vector<WeatherInfo> hourly;
 };
 
 

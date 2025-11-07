@@ -42,7 +42,8 @@ void GetCityInfo()
    Endpoint ep = ConnectionInfo().connect();
 
    if (!ep.isConnected()) {
-      cout << "Failed to connect to service: " << ep.getError() << endl;
+      cout << "Failed to connect to service: "
+           << ep.getStatus().getFormattedMessage() << endl;
       return;
    }
 
@@ -77,7 +78,8 @@ void GetPointOfInterestResult()
    Endpoint ep = ConnectionInfo().connect();
 
    if (!ep.isConnected()) {
-      cout << "Failed to connect to service: " << ep.getError() << endl;
+      cout << "Failed to connect to service: "
+           << ep.getStatus().getFormattedMessage() << endl;
       return;
    }
 
@@ -111,7 +113,8 @@ void GetPointOfInterestAsync()
    Endpoint ep = ConnectionInfo().connect();
 
    if (!ep.isConnected()) {
-      cout << "Failed to connect to service: " << ep.getError() << endl;
+      cout << "Failed to connect to service: "
+           << ep.getStatus().getFormattedMessage() << endl;
       return;
    }
 
@@ -132,7 +135,8 @@ void GetPointOfInterestAsyncResult()
    Endpoint ep = ConnectionInfo().connect();
 
    if (!ep.isConnected()) {
-      cout << "Failed to connect to service: " << ep.getError() << endl;
+      cout << "Failed to connect to service: "
+           << ep.getStatus().getFormattedMessage() << endl;
       return;
    }
 
@@ -190,7 +194,8 @@ void StreamPointsOfInterest()
    Endpoint ep = ConnectionInfo().connect();
 
    if (!ep.isConnected()) {
-      cout << "Failed to connect to service: " << ep.getError() << endl;
+      cout << "Failed to connect to service: "
+           << ep.getStatus().getFormattedMessage() << endl;
       return;
    }
 
@@ -258,7 +263,8 @@ void ChainAsyncCalls()
    Endpoint ep = ConnectionInfo().connect();
 
    if (!ep.isConnected()) {
-      cout << "Failed to connect to service: " << ep.getError() << endl;
+      cout << "Failed to connect to service: "
+           << ep.getStatus().getFormattedMessage() << endl;
       return;
    }
 
@@ -272,7 +278,7 @@ void ChainAsyncCalls()
    // list of POIs by default will not be sent across the wire to this
    // endpoint. However, if we were now to do the following locally between
    // these two calls:
-   // 
+   //
    // Result<vector<PointOfInterest>, string> localPois = pois.value();
    //
    // ...then the 'value' call would block and request that the actual list of
@@ -311,7 +317,8 @@ void CityGuideChat()
          Endpoint ep = ConnectionInfo().connect();
 
          if (!ep.isConnected()) {
-            cout << "Failed to connect to service: " << ep.getError() << endl;
+            cout << "Failed to connect to service: "
+                 << ep.getStatus().getFormattedMessage() << endl;
             return;
          }
 
@@ -370,7 +377,8 @@ void RecordRoute()
    Endpoint ep = ConnectionInfo().connect();
 
    if (!ep.isConnected()) {
-      cout << "Failed to connect to service: " << ep.getError() << endl;
+      cout << "Failed to connect to service: "
+           << ep.getStatus().getFormattedMessage() << endl;
       return;
    }
 
@@ -378,6 +386,7 @@ void RecordRoute()
    recorder.startRecord();
 
    for (int idx = 0; idx < 10; ++idx) {
+      this_thread::sleep_for(250ms);
       Location location = { 50.0f + idx, 100.0f + idx };
       recorder.recordRouteLocation(location);
    }
@@ -412,7 +421,8 @@ void Multithreaded()
    Endpoint ep = ConnectionInfo().connect();
 
    if (!ep.isConnected()) {
-      cout << "Failed to connect to service: " << ep.getError() << endl;
+      cout << "Failed to connect to service: "
+           << ep.getStatus().getFormattedMessage() << endl;
       return;
    }
 
@@ -431,7 +441,7 @@ void Multithreaded()
          // synchronous or asynchronous calls. This is completely transparent
          // to the application developer, and the framework will handle all the
          // necessary thread synchronization.
-         cpuTimeMs += CityGuideService::doSomeWork(1000);
+         cpuTimeMs += CityGuideService::doSomeWork(1'000);
       });
    }
 
@@ -457,11 +467,11 @@ void Multithreaded()
 // lookup table.
 //
 // During the handshake phase, both endpoints share their schemas with each
-// other, which include the classes, methods, parameters, return values, structs
-// and fields that they support. The "tag" or ID of each parameter or field is
-// its type + name. For a return value, it is just its type. Therefore, changing
-// a parameter or field's type or name will make it be considered to be a
-// different parameter or field.
+// other, which include the classes, methods, parameters, return values,
+// structs, fields and enum types that they support. The "tag" or ID of each
+// parameter or field is its type + name. For a return value, it is just its
+// type. Therefore, changing a parameter or field's type or name will make it be
+// considered to be a different parameter or field.
 //
 // Still during the handshake phase, both endpoints then filter out the
 // classes, methods, parameters, structs and fields that the other endpoint
@@ -471,9 +481,9 @@ void Multithreaded()
 // the client side).
 //
 // As a final handshake step, each endpoint then updates it bool table that
-// indicates what is supported by the other endpoint. The check to see whether
-// the remote supports a particular class, method, parameter or field is then a
-// very cheap lookup into this bool table.
+// indicates what is supported by the other endpoint. The runtime check to see
+// whether the remote supports a particular class, method, parameter or field is
+// then a very cheap lookup into this bool table.
 //
 // The sorting allows method parameters and struct fields to be re-ordered
 // between versions without breaking forwards or backwards compatibility. For
@@ -485,7 +495,7 @@ void Multithreaded()
 // fields and parameters that both endpoints support will be sent on the wire,
 // and in the exact order that both sides expect. This also eliminates the need
 // for embedded "tags" to identify each value within the payload.
-// 
+//
 // The below example shows an evolving API over time. In this case, we have
 // three versions of the 'WeatherInfo' struct. The first version has a single
 // string field for the weather conditions. The second version adds a new
@@ -498,7 +508,8 @@ void ApiEvolution()
    Endpoint ep = ConnectionInfo().connect();
 
    if (!ep.isConnected()) {
-      cout << "Failed to connect to service: " << ep.getError() << endl;
+      cout << "Failed to connect to service: "
+           << ep.getStatus().getFormattedMessage() << endl;
       return;
    }
 
@@ -513,8 +524,8 @@ void ApiEvolution()
    cout << "  Temperature:   " << weather.temperature << " F" << endl;
 
    // Use the 'hasStructField' method to check if the remote supports a
-   // particular field. If the remote does not support the field, the default
-   // value for that field will be returned.
+   // particular field. If the remote does not support the field, the local
+   // default value for that field will be read.
    if (remoteCaps::hasStructField::cityguide::WeatherInfo::conditionsV2()) {
       // The remote supports v2 of the weather conditions, which is a struct.
       cout << "  Wind:          " << weather.conditionsV2.windDirection
@@ -533,7 +544,7 @@ void ApiEvolution()
       WeatherForecast forecast = service.getWeatherForecast(location);
       cout << endl << "Weather forecast received: " << endl;
       cout << "  City: " << forecast.city << endl;
-      for (const WeatherInfo& w : forecast.forecast) {
+      for (const WeatherInfo& w : forecast.hourly) {
          cout << "  Forecast: " << w.hour << ":00, " << w.temperature << " F"
             << endl;
       }
@@ -589,18 +600,19 @@ void LogMessages()
    Endpoint ep = ConnectionInfo().connect();
 
    if (!ep.isConnected()) {
-      cout << "Failed to connect to service: " << ep.getError() << endl;
+      cout << "Failed to connect to service: "
+           << ep.getStatus().getFormattedMessage() << endl;
       return;
    }
 
    // Log messages from/to the client.
-   ep.setLocalDebugMode(true, true);
+   ep.setLocalMsgLogMode(true, true);
 
    uint64_t result = CityGuideService::add(20, 22);
    cout << "CityGuideService::add: 20 + 22 = " << result << endl;
 
    // Turn off logging.
-   ep.setLocalDebugMode(false, false);
+   ep.setLocalMsgLogMode(false, false);
 }
 
 

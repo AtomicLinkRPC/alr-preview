@@ -18,8 +18,8 @@ AsyncVoid
 CityGuideClient::postChatMessage(const string& toUsername,
                                  const ChatMessage& msg)
 {
-   log("CityGuide message from %s to %s: '%s'\n",
-       msg.fromUsername.c_str(), toUsername.c_str(), msg.message.c_str());
+   logAlways("CityGuide message from {} to {}: '{}'\n",
+             msg.fromUsername, toUsername, msg.message);
 }
 
 

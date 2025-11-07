@@ -65,7 +65,7 @@ Flow control counters (send/recv flow units) throttle producers when remote cons
 ## 6. Threading and Continuations
 
 - Each endpoint allocates queue slots; threads claim slot indexes (odd = service, even = client orientation—ensuring cross symmetry).
-- Synchronous call blocking: while waiting for reply, the thread can *temporarily service inbound* framed calls targeting its slot (continuation). This reduces deadlock potential and median latency for dependent RPC chains.
+- Synchronous call blocking: while waiting for reply, the thread will service inbound framed calls targeting its slot (continuation). This reduces deadlock potential and median latency for dependent RPC chains.
 - `RemoteThread`: reserves single remote processing thread; all subsequent RPCs pinned, enabling reuse of remote thread-local state.
 - `RemoteThreadPool`: binds a logical remote queue allowing up to N threads to pull; retains ordering at dequeue but executes concurrently.
 
@@ -82,10 +82,10 @@ Flow control counters (send/recv flow units) throttle producers when remote cons
 ### 7.1 Call Timeouts
 The `CallTimeout` ambient variable sets a timeout for RPC calls within its scope:
 
-- **Client-side**: Stackable RAII class that sets timeout in milliseconds (0 = no timeout).
-- **Synchronous calls**: After completion, check `isSyncRequestTimedOut()` to determine if timeout occurred. Return value is in unspecified state on timeout.
-- **Asynchronous calls**: Timeout state propagated to remote; service checks via `CallCtx::isTimedOut()`.
-- **Service implementation**: Should periodically check `CallCtx::isTimedOut()` and abort processing when true.
+- **Call-side**: Stackable RAII class that sets timeout in milliseconds (0 = no timeout).
+- **Synchronous calls**: After completion, check `CallTimeout::isSyncRequestTimedOut()` to determine if timeout occurred. Return value is in unspecified state on timeout.
+- **Asynchronous calls**: Timeout state propagated to remote; remote checks via `CallCtx::isTimedOut()`.
+- **Callee implementation**: Should periodically check `CallCtx::isTimedOut()` and abort processing when true.
 
 ### 7.2 Async Frame Management
 The `AsyncFrame` ambient variable creates a scope for managing multiple async operations:
@@ -93,17 +93,10 @@ The `AsyncFrame` ambient variable creates a scope for managing multiple async op
 - **Automatic grouping**: All async operations initiated within the frame's scope are tracked together.
 - **Scope exit behavior**: Frame destructor waits for all tracked operations to complete (with optional timeout).
 - **Error handling**: Centralized via `onError()` callback; invoked when any operation reports an error.
-- **Cancellation**: `cancel()` method signals remote operations to abort; service checks via `CallCtx::isAsyncFrameCanceled()`.
-- **Error propagation**: Service methods can call `CallCtx::sendAsyncFrameError()` to report errors back to the frame.
+- **Cancellation**: `cancel()` method signals remote operations to abort; remote checks via `CallCtx::isAsyncFrameCanceled()`.
+- **Error propagation**: Remote methods can call `CallCtx::sendAsyncFrameError()` or return `AsyncStatus` to report errors back to the frame.
 - **Nesting**: Frames can be nested; each tracks its own set of operations independently.
 - **Detachment**: `detach()` method prevents waiting on scope exit.
-
-Implementation notes:
-
-- Thread-local frame stack maintains active frames for current thread.
-- Each async operation tagged with frame ID during initiation.
-- Errors sent back via special async frame error message type.
-- Frame completion tracked via atomic counters for pending operations.
 
 ### 7.3 Status and Error Representation
 The `Status` type provides a unified way to represent operation results:
@@ -121,7 +114,7 @@ Cancellation: Caller sets cancellation flag; on remote side, user logic polls vi
 Each user-created instance of an `EndpointClass` obtains an object ID. Reference flows:
 
 1. Construction on local side -> local registry entry.
-2. Passing as parameter (ClassRef or reference) transmits object ID; remote side creates *proxy* (if necessary) linking to local lifetime.
+2. Passing as parameter (`ClassRef<T>` or `T&`) transmits object ID; remote side creates *proxy* (if necessary) linking to local lifetime.
 3. Reference counts incorporate: local references, remote references, in-flight RPC references.
 4. Destruction blocks until refcount zero → ensures deterministic cleanup without GC pauses.
 
@@ -225,7 +218,7 @@ for(int i=0;i<1000000;i++) Service::ping();
 | Change | Behavior |
 |--------|----------|
 | Add method | New method invocable only by updated peers; older peers ignore; no break. |
-| Remove method | Guard client code with `remoteCaps::hasMethod::<Class>::<method>()` before invoking. Unguarded old callers will hit `UndefinedRemoteMethodError` (indicates missed capability check). |
+| Remove method | Guard calling side with `remoteCaps::hasMethod::<Class>::<method>()` before invoking. Unguarded old callers will hit `UndefinedRemoteMethodError` (indicates missed capability check). |
 | Reorder parameters | Ignored (mapped by name/signature not position). |
 | Add struct field | Not sent to older side; default-initialized there. |
 | Remove struct field | Omitted from transmission; receiving side's field absent. |
