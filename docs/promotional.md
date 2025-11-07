@@ -55,7 +55,7 @@ Adopting ALR can be a low-risk, incremental process:
 
 1.  Identify a candidate C++ service boundary.
 2.  Inherit existing classes from `alr::EndpointClass` or `alr::CommonEndpointClass` (no need to rewrite Data Transfer Objects).
-3.  Build the service (the ALR compiler runs automatically) and deploy it side-by-side with the existing RPC path.
+3.  Build the service (ALR codegen runs automatically) and deploy it side-by-side with the existing RPC path.
 4.  Gradually shift traffic, validate metrics, and eventually deprecate the legacy stack.
 
 ## Competitive Positioning

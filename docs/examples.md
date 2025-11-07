@@ -1,6 +1,6 @@
 # AtomicLinkRPC Examples
 
-Practical, self‑contained examples showcasing core ALR concepts. Each code block omits generated headers (`*_gen.h`) for brevity—these are produced automatically by the ALR compiler once you derive from `alr::EndpointClass` or `alr::CommonEndpointClass`.
+Practical, self‑contained examples showcasing core ALR concepts. Each code block omits generated headers (`*_gen.h`) for brevity—these are produced automatically by ALR codegen once you derive from `alr::EndpointClass` or `alr::CommonEndpointClass`.
 
 ---
 ## 1. Minimal Synchronous Call
@@ -452,15 +452,267 @@ Notes:
 - `alr::EndpointClass` and `alr::CommonEndpointClass` can be used side-by-side, allowing mixed cases.
 
 ---
+## 14. Error Handling with Status and AsyncStatus
+
+Use `alr::Status` to return success/error states from methods, and `alr::AsyncStatus` for async methods that may fail without returning a value.
+
+```cpp
+// service.h
+enum class ValidationError { 
+    EmptyInput, 
+    TooLong, 
+    InvalidFormat 
+};
+
+class UserService : public alr::EndpointClass
+{
+public:
+    // Synchronous method returning Status
+    static alr::Status validateUsername(const std::string& username);
+    
+    // Async method that may fail (appears as AsyncVoid to caller)
+    static alr::AsyncStatus sendNotification(const std::string& message);
+};
+
+// service.cpp
+alr::Status UserService::validateUsername(const std::string& username)
+{
+    if (username.empty()) {
+        return alr::Status(ValidationError::EmptyInput, "Username cannot be empty");
+    }
+    if (username.length() > 50) {
+        return alr::Status(ValidationError::TooLong, "Username too long");
+    }
+    return alr::Status::Success;
+}
+
+alr::AsyncStatus UserService::sendNotification(const std::string& message)
+{
+    if (message.empty()) {
+        return alr::Status(ValidationError::EmptyInput, "Message cannot be empty");
+    }
+    // Send notification...
+    return alr::Status::Success;
+}
+
+// client.cpp
+int main()
+{
+    alr::Endpoint ep = alr::ConnectionInfo()
+        .setConnectAddress("service-host:55100")
+        .connect();
+    
+    // Check synchronous status
+    alr::Status result = UserService::validateUsername("john_doe");
+    if (result.isError()) {
+        std::cerr << "Validation failed: " << result.getFormattedMessage() << std::endl;
+        auto code = result.getCode<ValidationError>();
+        // Handle specific error codes
+    }
+    
+    // AsyncStatus with AsyncFrame for error handling
+    alr::AsyncFrame frame;
+    frame.onError([](const alr::Status& err) {
+        std::cerr << "Notification failed: " << err.getFormattedMessage() << std::endl;
+    });
+    
+    UserService::sendNotification("Hello!");  // Fire-and-forget, errors caught by frame
+}
+```
+Highlights:
+- `Status` can hold custom error codes from enums
+- `AsyncStatus` enables fire-and-forget with error propagation
+- Errors are caught by `AsyncFrame` error handler
+
+---
+## 15. Managing Async Operations with AsyncFrame
+
+Group multiple async operations and handle errors centrally with `alr::AsyncFrame`.
+
+```cpp
+// service.h
+class DataProcessor : public alr::EndpointClass
+{
+public:
+    static alr::AsyncVoid processItem(int itemId);
+    static alr::AsyncStatus validateAndProcess(int itemId);
+};
+
+// service.cpp
+alr::AsyncVoid DataProcessor::processItem(int itemId)
+{
+    if (alr::CallCtx::isAsyncFrameCanceled()) {
+        alr::CallCtx::sendAsyncFrameError(
+            alr::Status("Processing was canceled"));
+        return;
+    }
+    
+    if (alr::CallCtx::isTimedOut()) {
+        alr::CallCtx::sendAsyncFrameError(
+            alr::Status("Processing timed out"));
+        return;
+    }
+    
+    // Process the item...
+}
+
+alr::AsyncStatus DataProcessor::validateAndProcess(int itemId)
+{
+    if (itemId < 0) {
+        return alr::Status("Invalid item ID");
+    }
+    // Process...
+    return alr::Status::Success;
+}
+
+// client.cpp
+void processBatch()
+{
+    alr::AsyncFrame frame(5000);  // Wait up to 5 seconds on scope exit
+    
+    frame.onError([](const alr::Status& err) {
+        std::cerr << "Batch processing error: " << err.getMessage() << std::endl;
+    });
+    
+    // Launch multiple async operations
+    for (int i = 0; i < 100; i++) {
+        DataProcessor::processItem(i);
+    }
+    
+    // Frame destructor waits for all operations with 5s timeout
+}
+
+void nestedFrames()
+{
+    alr::AsyncFrame outerFrame;
+    outerFrame.onError([](const alr::Status& err) {
+        std::cerr << "Outer frame error: " << err.getMessage() << std::endl;
+    });
+    
+    DataProcessor::processItem(1);
+    
+    {
+        alr::AsyncFrame innerFrame;
+        innerFrame.onError([](const alr::Status& err) {
+            std::cerr << "Inner frame error: " << err.getMessage() << std::endl;
+        });
+        
+        DataProcessor::processItem(2);
+        DataProcessor::processItem(3);
+        
+        // Inner frame waits here
+    }
+    
+    DataProcessor::processItem(4);
+    
+    // Outer frame waits here
+}
+```
+Highlights:
+- `AsyncFrame` groups and manages multiple async operations
+- Centralized error handling via `onError` callback
+- Automatic waiting on scope exit with optional timeout
+- Frames can be nested for hierarchical error handling
+
+---
+## 16. Setting Call Timeouts with CallTimeout
+
+Use `alr::CallTimeout` to set time limits on RPC calls.
+
+```cpp
+// service.h
+class ComputeService : public alr::EndpointClass
+{
+public:
+    static int compute(int iterations);
+    static alr::AsyncVoid longComputation(int seconds);
+};
+
+// service.cpp
+int ComputeService::compute(int iterations)
+{
+    for (int i = 0; i < iterations; i++) {
+        if (alr::CallCtx::isTimedOut()) {
+            // Client's timeout was exceeded
+            return -1;  // Return partial/error value
+        }
+        // Do computation...
+    }
+    return iterations;
+}
+
+alr::AsyncVoid ComputeService::longComputation(int seconds)
+{
+    auto deadline = std::chrono::steady_clock::now() + 
+                    std::chrono::seconds(seconds);
+    
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (alr::CallCtx::isTimedOut()) {
+            alr::CallCtx::sendAsyncFrameError(
+                alr::Status("Computation timed out"));
+            return;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+// client.cpp
+void syncCallWithTimeout()
+{
+    alr::CallTimeout timeout(3000);  // 3 second timeout
+    
+    int result = ComputeService::compute(1000000);
+    
+    if (timeout.isSyncRequestTimedOut()) {
+        std::cerr << "Computation timed out!" << std::endl;
+        // result is in an unspecified state
+    } else {
+        std::cout << "Result: " << result << std::endl;
+    }
+}
+
+void asyncCallWithTimeout()
+{
+    alr::AsyncFrame frame;
+    alr::CallTimeout timeout(5000);  // 5 second timeout
+    
+    frame.onError([](const alr::Status& err) {
+        std::cerr << "Async computation failed: " << err.getMessage() << std::endl;
+    });
+    
+    ComputeService::longComputation(10);  // This will timeout at 5s
+}
+
+void nestedTimeouts()
+{
+    alr::CallTimeout outerTimeout(10000);  // 10 seconds
+    
+    ComputeService::compute(100);  // Has 10 second timeout
+    
+    {
+        alr::CallTimeout innerTimeout(2000);  // 2 seconds (overrides outer)
+        ComputeService::compute(1000);  // Has 2 second timeout
+    }
+    
+    ComputeService::compute(100);  // Back to 10 second timeout
+}
+```
+Highlights:
+- `CallTimeout` sets time limits for both sync and async calls
+- Service-side checks via `CallCtx::isTimedOut()`
+- Stackable - nested timeouts override outer ones
+- Works with `AsyncFrame` for comprehensive error handling
+
+---
 ## Tips & Patterns
 
 - Keep interfaces idiomatic; avoid artificial DTO layers unless needed for domain clarity.
 - Use `AsyncRef<T>` when chaining remote operations to suppress unnecessary round‑trips.
-- Always rely on framework tracking—even `AsyncVoid` failures transition endpoint to fault state (no silent loss).
+- Always rely on framework tracking—even `AsyncVoid` failures transition endpoint to fault state (no silent failures).
 - Use registry filtering (region/zone/tags) to implement multi‑region active‑active without external SDN tooling.
 
 ---
 
 ## Next Steps
 
-After reviewing these examples, you should have a good understanding of how to use ALR's core features. For more detailed guidance on project setup and advanced patterns, please consult the [User Guide](./user-guide.md). For a deep dive into the API, see the [API Reference](./api-reference.md).
+After reviewing these examples, you should have a good understanding of how to use ALR's core features. For more detailed guidance on project setup and advanced patterns, please consult the [User Guide](./user-guide.md). For a deep dive into the API, see the [API Reference](./api-reference-core.md).

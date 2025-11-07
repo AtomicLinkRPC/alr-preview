@@ -2,13 +2,20 @@
 
 Consolidated overview, technical deep dive, examples, user guidance, API references, benchmarks, and promotional positioning for AtomicLinkRPC (ALR).
 
+> **Note**: For focused guidance on specific topics, see:
+> - **Getting started**: [Overview](./overview.md) and [User Guide](./user-guide.md)
+> - **API Reference**: [Core](./api-reference-core.md) and [Advanced](./api-reference-advanced.md)
+> - **Migrating from other frameworks**: [Migration Guide](./migration-guide.md)
+> - **Troubleshooting issues**: [Troubleshooting Guide](./troubleshooting.md)
+> - **Deep technical details**: [Technical Documentation](./technical.md)
+
 ---
 ## 1. Overview
 AtomicLinkRPC (ALR) is a native C++ RPC framework engineered for:
 
 - Extreme throughput / low latency (tens to hundreds of millions RPC/s achievable in stress tests)
 - Native ergonomics (headers are the interface; no IDL)
-- Seamless evolution (schema negotiation eliminates fragile versioning)
+- Seamless evolution with optional policies (schema negotiation eliminates fragile versioning)
 - Integrated service discovery & adaptive load balancing (registry subsystem)
 - Simple async patterns (`Async<T>`, `AsyncRef<T>`, `AsyncVoid`)
 
@@ -21,9 +28,10 @@ Key differentiators: tagless binary serialization, opportunistic batching, lock�
 | Endpoint | Logical bidirectional TCP connection & negotiated schema view. |
 | EndpointClass | Base for remotable classes (static & instance methods). |
 | CommonEndpointClass | Symmetric base for classes creatable/callable on either/both peers. Codegen emits remote declaration under a root namespace (default `remote`). |
-| Ambient Variables | Thread-scoped context objects (EndpointCtx, RemoteThread, RemoteThreadPool). |
-| Async Primitives | `Async<T>` for simple futures; `AsyncRef<T>` for distributed chaining; `AsyncVoid` for tracked fire-and-forget. |
-| ClassRef<T> | Distributed lifetime-managed references to endpoint class instances. |
+| Ambient Variables | Thread-scoped context objects (EndpointCtx, RemoteThread, RemoteThreadPool, CallTimeout, AsyncFrame). |
+| Async Primitives | `Async<T>` for simple futures; `AsyncRef<T>` for distributed chaining; `AsyncVoid` for tracked fire-and-forget; `AsyncStatus` for async error propagation. |
+| Status | Success/error state with optional custom error codes and messages. |
+| `ClassRef<T>` | Distributed lifetime-managed references to endpoint class instances. |
 | Registry | Built-in discovery + load aware routing + topology hints. |
 | Schema Negotiation | Connection-time mapping + table reorder enabling tagless transport. |
 
@@ -102,12 +110,15 @@ Speedups vs representative gRPC runs: 25× to 900× depending on workload shape.
 | Task | Steps |
 |------|-------|
 | Define service | Inherit from `alr::EndpointClass` or `alr::CommonEndpointClass`, implement methods. |
-| Build | Ensure ALR compiler runs; include generated `*_gen.h`, `*_gen.cpp`. |
+| Build | Ensure ALR codegen runs; include generated `*_gen.h`, `*_gen.cpp`. |
 | Connect | `alr::Endpoint ep = alr::ConnectionInfo().connect();` |
 | Thread usage | Add `EndpointCtx` in new threads. |
 | Async chain | Use `AsyncRef<T>` to keep intermediates remote. |
 | Bulk transfer | Use `ByteBuffer` + `waitForBufferReady()` for reuse. |
-| Error returns | Use `Result<T,E>` for domain errors. |
+| Error returns | Use `Status` for simple errors or `Result<T,E>` for domain errors. |
+| Timeouts | Use `CallTimeout` ambient variable to set RPC call timeouts. |
+| Async grouping | Use `AsyncFrame` to group and manage multiple async operations with centralized error handling. |
+| Async errors | Return `AsyncStatus` from async methods that may fail; errors propagate to caller's `AsyncFrame`. |
 
 ---
 ## 8. API Surface (Abbreviated)
@@ -115,10 +126,11 @@ Speedups vs representative gRPC runs: 25× to 900× depending on workload shape.
 |----------|---------|
 | Endpoint Lifecycle | `Endpoint`, `EndpointCtx`, `EndpointWeakRef`, `EndpointConfig`, stats retrieval |
 | Classes & Objects | `EndpointClass`, `CommonEndpointClass`, `ClassRef<T>` |
-| Async | `Async<T>`, `AsyncVal<T>`, `AsyncRef<T>`, `AsyncVoid` |
+| Async | `Async<T>`, `AsyncVal<T>`, `AsyncRef<T>`, `AsyncVoid`, `AsyncStatus`, `AsyncFrame` |
 | Thread Control | `RemoteThread`, `RemoteThreadPool` |
+| Error Handling | `Status`, `Result<T,E>` |
+| Call Management | `CallCtx`, `CallTimeout` |
 | Data Transport | `ByteBuffer` |
-| Results & Context | `Result<T,E>`, `CallCtx` |
 | Discovery | `ConnectionInfo`, `ServiceInstance`, `InstanceLoadInfo` |
 | Perf | `PerfTimer`, `PerfResults` |
 
@@ -135,7 +147,7 @@ For full details refer to `api-reference.md`.
 - **AsyncRef:** Reference holds remote state; accessing value triggers transfer; chaining reduces wire traffic.
 
 ---
-## 10. Evolution Model
+## 10. API Evolution Model
 | Change | Compatibility |
 |--------|---------------|
 | Add method | Safe, ignored by old side |
@@ -145,6 +157,20 @@ For full details refer to `api-reference.md`.
 | Reorder params/fields | Safe; mapping by identity |
 | Change struct field name or type | Treated as a different field (identity = type + name). After handshake each side transmits only the intersection set: the old-named field is NOT sent to the newer peer (it has no matching identity there) and the new field is NOT sent to the older peer. Each side sees defaults for fields the other lacks. Use `remoteCaps::hasStructField::<...>()`  to branch on presence. Remove deprecated field after migration window. |
 | Change method parameter name or type | Parameter identity = type + name. Non-overlapping changed parameter is simply omitted from transmission; the receiving side supplies/observes a default value for that parameter. The method itself still maps and is invocable both ways. Use `remoteCaps::hasMethodParam::<...>()` (and `hasMethodReturn` if needed) to branch on presence. Stage removals by optionally moving deprecated params to the tail before final deletion. |
+
+#### API Evolution Policies
+
+ALR provides optional policies for fine-grained API evolution control:
+
+| What | Result |
+|------|--------|
+| Per-value policies | Apply to individual fields, parameters, and return values |
+| Write and read separation | Different policies for sending vs receiving |
+| Remote capability awareness | Policies adjust based on what remote endpoint knows |
+| Enum validation | Ensure both endpoints understand enum values and flags |
+| Independent enforcement | Each endpoint enforces its own policies |
+| Zero breaking changes | Policies can be added/changed/removed without affecting existing code or remote endpoints |
+| Detailed diagnostics | Violations include actionable fix suggestions |
 
 ---
 ## 11. Performance Tuning Quick Table
@@ -222,4 +248,4 @@ Enable TLS via `ConnectionInfo::setOpenSsl(...)`. Minimal overhead added relativ
 ## 20. Closing Summary
 ALR collapses the traditional trade-off triangle (Performance, Simplicity, Evolvability) by pushing complexity to compile-time analysis and connection-time schema alignment. Whether optimizing cost, latency budgets, or iteration speed, ALR provides a compelling foundation for modern high-scale C++ distributed systems.
 
-For deeper details: see [technical.md](./technical.md), [api-reference.md](./api-reference.md), and [benchmarks.md](./benchmarks.md).
+For deeper details: see [Technical Documentation](./technical.md), [API Reference - Core](./api-reference-core.md), [API Reference - Advanced](./api-reference-advanced.md), [Benchmarks](./benchmarks.md), [Migration Guide](./migration-guide.md), and [Troubleshooting Guide](./troubleshooting.md).

@@ -417,7 +417,7 @@ void Multithreaded()
    }
 
    vector<thread> threads;
-   atomic<sint64> cpuTimeMs = 0;
+   atomic<int64_t> cpuTimeMs = 0;
    auto startTime = chrono::system_clock::now();
 
    for (int idx = 0; idx < 10; ++idx) {
@@ -596,7 +596,7 @@ void LogMessages()
    // Log messages from/to the client.
    ep.setLocalDebugMode(true, true);
 
-   uint64 result = CityGuideService::add(20, 22);
+   uint64_t result = CityGuideService::add(20, 22);
    cout << "CityGuideService::add: 20 + 22 = " << result << endl;
 
    // Turn off logging.

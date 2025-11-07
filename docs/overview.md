@@ -12,7 +12,7 @@ ALR's core philosophy is to let developers work with their own C++ types directl
 - **Extreme Performance**: ALR utilizes direct TCP communication, a compact zero-tag binary layout, opportunistic batching, and lock-free/wait-free hot paths. This results in performance of millions to hundreds of millions of RPCs per second.
 - **Async Made Trivial**: Return `alr::Async<T>` (or `AsyncVoid`) for non-blocking calls. You can chain callbacks or wait for results, simplifying asynchronous programming.
 - **Distributed Object References**: Pass `alr::ClassRef<T>` or `T&` representing local or remote instances. ALR transparently routes calls and manages object lifetimes across the network.
-- **Seamless Evolution**: Add, remove, or reorder parameters or struct fields without breaking older clients or services. A handshake-time schema negotiation and layout mapping allows different versions to interoperate automatically.
+- **Seamless Evolution**: Add, remove, or reorder parameters or struct fields without breaking older clients or services. Optionally apply API evolve policies to individual parameters, fields and return values to enforce access patterns. A handshake-time schema negotiation and layout mapping allows different versions to interoperate automatically.
 - **Built-in Service Registry**: ALR includes a sophisticated service registry for dynamic service discovery, registration, health monitoring, and client-side adaptive load balancing. No need for external tools like Consul or etcd.
 - **Minimal Dependencies**: ALR has minimal dependencies: libclang for the build-time codegen and optional OpenSSL for TLS.
 
@@ -28,7 +28,7 @@ ALR is ideal for performance-critical and latency-sensitive systems where develo
 ## Key Features
 
 ### 1. No IDL, Just C++
-With ALR, your C++ header files are your API definition. Simply derive your service classes from `alr::EndpointClass` or `alr::CommonEndpointClass`, and the ALR compiler handles the rest, generating the necessary RPC stubs behind the scenes.
+With ALR, your C++ header files are your API definition. Simply derive your service classes from `alr::EndpointClass` or `alr::CommonEndpointClass`, and ALR codegen handles the rest, generating the necessary RPC stubs behind the scenes.
 
 ### 2. Ambient Context
 ALR uses a powerful "Ambient Variable" system rooted in thread-local storage. This allows you to set up an endpoint connection once per thread, and all subsequent RPCs automatically use that context without needing to be explicitly passed. This keeps your business logic clean and free of RPC-specific clutter.
@@ -84,6 +84,18 @@ ALR includes a sophisticated service registry and discovery system that enables 
 - Clients can filter backend services by service name, region, and zone for locality-aware routing.
 - A user-provided callback on the client-side allows for custom service resolution logic (e.g., lowest latency, custom tags).
 - The client just needs to be pointed to the resolver, and the rest is automatic.
+
+### 8. API Evolution Policies
+
+ALR provides fine-grained control over API evolution through the `alr::Evolve<T, WritePolicy, ReadPolicy>` template wrapper. This wrapper can be applied to individual struct fields, method parameters, and return values to enforce runtime access patterns and validate correct API usage.
+
+Key capabilities:
+
+- **Write and Read Policies** - Separate control for sending vs receiving data
+- **Remote Capability Awareness** - Policies adjust based on what the remote endpoint knows
+- **Enum Validation** - Ensure both endpoints understand enum values and flags
+- **Runtime Verification** - Catch version mismatches early during the development phase
+- **Detailed Diagnostics** - Violation messages include actionable fixes
 
 ## Why ALR over gRPC?
 

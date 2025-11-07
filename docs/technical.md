@@ -11,8 +11,8 @@
 | Built-in service discovery & load balancing | Native registry + client resolver callback |
 
 ---
-## 2. Compilation & Code Generation
-The ALR compiler (libclang powered) scans user headers searching for classes inheriting `alr::EndpointClass` or `alr::CommonEndpointClass`. For each:
+## 2. Compilation and Code Generation
+ALR codegen (`libclang` powered) scans user headers searching for classes inheriting `alr::EndpointClass` or `alr::CommonEndpointClass`. For each:
 
 1. Collect class metadata: method names, static vs instance, parameter types, return types, struct & enum dependencies.
 2. Emit generated files (`*_gen.h / *_gen.cpp`) implementing:
@@ -24,7 +24,7 @@ The ALR compiler (libclang powered) scans user headers searching for classes inh
 4. Regenerate only when structural changes detected (first build or existing content mismatch) -> fast incremental builds.
 
 ---
-## 3. Handshake Phase
+## 3. Schema Negotiation and Handshake
 Upon connection establishment:
 
 1. Each endpoint sends a compact schema descriptor (classes, methods, param & return type shapes, struct field lists, type kinds, ordering).
@@ -51,7 +51,7 @@ After receiving the remote schema, the remainder of the steps typically take les
 | Message consistency |  Must read up to the very last byte, not more, not less, else `InvalidMessageError` exception + faulted endpoint. |
 
 ---
-## 5. Message Framing & Batching
+## 5. Message Framing and Batching
 Every logical RPC message contains at minimum: (a) total size, (b) message kind, (c) queue/thread slot, (d) target method ID (and optionally object ID). Invocations with no parameters can be as small as 4 bytes. Batching pipeline:
 
 1. Thread starts writing messages into per-thread staging buffer until thresholds (`maxBatchMsgs` / `maxMsgBatchSize`) reached. Notifies the aggregator thread after the first write with timestamp.
@@ -62,7 +62,7 @@ Every logical RPC message contains at minimum: (a) total size, (b) message kind,
 Flow control counters (send/recv flow units) throttle producers when remote consumption lags.
 
 ---
-## 6. Threading & Continuations
+## 6. Threading and Continuations
 
 - Each endpoint allocates queue slots; threads claim slot indexes (odd = service, even = client orientation—ensuring cross symmetry).
 - Synchronous call blocking: while waiting for reply, the thread can *temporarily service inbound* framed calls targeting its slot (continuation). This reduces deadlock potential and median latency for dependent RPC chains.
@@ -76,6 +76,43 @@ Flow control counters (send/recv flow units) throttle producers when remote cons
 | `Async<T>` / `AsyncVal<T>` | Simple one-shot result | Callback (`then`), wait, cancel, timeout state. Value materialized locally. |
 | `AsyncRef<T>` | Distributed reference | Value may remain remote across chained RPCs; only serialized back if/when accessed. Reference counting spans endpoints. |
 | `AsyncVoid` | Fire-and-forget (still tracked) | Endpoint faulted if error occurs (no silent failure). |
+| `AsyncStatus` | Fire-and-forget with error propagation | Appears as `AsyncVoid` to caller. Non-success status propagates to `AsyncFrame` error handler. |
+| `Status` | Operation result state | Holds success or error with optional custom enum code and message. Used for synchronous error returns and async error propagation. |
+
+### 7.1 Call Timeouts
+The `CallTimeout` ambient variable sets a timeout for RPC calls within its scope:
+
+- **Client-side**: Stackable RAII class that sets timeout in milliseconds (0 = no timeout).
+- **Synchronous calls**: After completion, check `isSyncRequestTimedOut()` to determine if timeout occurred. Return value is in unspecified state on timeout.
+- **Asynchronous calls**: Timeout state propagated to remote; service checks via `CallCtx::isTimedOut()`.
+- **Service implementation**: Should periodically check `CallCtx::isTimedOut()` and abort processing when true.
+
+### 7.2 Async Frame Management
+The `AsyncFrame` ambient variable creates a scope for managing multiple async operations:
+
+- **Automatic grouping**: All async operations initiated within the frame's scope are tracked together.
+- **Scope exit behavior**: Frame destructor waits for all tracked operations to complete (with optional timeout).
+- **Error handling**: Centralized via `onError()` callback; invoked when any operation reports an error.
+- **Cancellation**: `cancel()` method signals remote operations to abort; service checks via `CallCtx::isAsyncFrameCanceled()`.
+- **Error propagation**: Service methods can call `CallCtx::sendAsyncFrameError()` to report errors back to the frame.
+- **Nesting**: Frames can be nested; each tracks its own set of operations independently.
+- **Detachment**: `detach()` method prevents waiting on scope exit.
+
+Implementation notes:
+
+- Thread-local frame stack maintains active frames for current thread.
+- Each async operation tagged with frame ID during initiation.
+- Errors sent back via special async frame error message type.
+- Frame completion tracked via atomic counters for pending operations.
+
+### 7.3 Status and Error Representation
+The `Status` type provides a unified way to represent operation results:
+
+- **Success state**: `Status::Success` or default-constructed `Status()`.
+- **Framework errors**: Uses `EndpointState` enum codes (e.g., Timeout, Disconnected).
+- **Application errors**: Uses custom enum types with optional string messages.
+- **Serialization**: Status objects can be serialized and transmitted between endpoints.
+- **Type safety**: Error codes are type-safe via template `getCode<T>()` method.
 
 Cancellation: Caller sets cancellation flag; on remote side, user logic polls via `CallCtx`. Timeouts appear as `isTimedOut()` state.
 
@@ -89,7 +126,7 @@ Each user-created instance of an `EndpointClass` obtains an object ID. Reference
 4. Destruction blocks until refcount zero → ensures deterministic cleanup without GC pauses.
 
 ---
-## 9. Service Registry & Discovery
+## 9. Service Registry and Discovery
 ### 9.1 Roles
 | Role | Description |
 |------|-------------|
@@ -116,7 +153,7 @@ Client resolution callback receives vector<ServiceInstance>. Example policies:
 Clients can pre-filter by specifying desired region/zone in `ConnectionInfo`. Registry supplies subset accordingly (implementation merges backend metadata vs client hints).
 
 ---
-## 10. Error & Fault Model
+## 10. Error and Fault Model
 | Condition | Handling |
 |-----------|----------|
 | Serialization mismatch | `InvalidMessageError` (should be prevented by handshake) |
@@ -159,7 +196,7 @@ Critical components likely include:
 - Wait-free fast-path for message enqueuing (fallback to blocking only under resource saturation).
 
 ---
-## 12. Latency Sampling & Instrumentation
+## 12. Latency Sampling and Instrumentation
 `alr::PerfTimer` and `PerfResults`:
 
 - Wrap code region to capture send/recv deltas, batch histogram, queue stats, latency samples.
@@ -184,7 +221,7 @@ for(int i=0;i<1000000;i++) Service::ping();
 `ConnectionInfo::setOpenSsl()` toggles TLS (OpenSSL). TLS adds per-connection handshake + encryption overhead; overall batching & compact messages counterbalance typical cost. Mixed secure/unsecure endpoints can interoperate (handshake enforces mode per connection).
 
 ---
-## 15. Evolution & Compatibility Rules
+## 15. Evolution and Compatibility Rules
 | Change | Behavior |
 |--------|----------|
 | Add method | New method invocable only by updated peers; older peers ignore; no break. |
@@ -231,19 +268,179 @@ if (remoteCaps::hasMethod::cityguide::CityGuideService::getWeatherForecast()) {
 }
 ```
 
+---
+## 18. API Evolution Policies
+
+### Policy Architecture
+
+API Evolution Policies are implemented through the `alr::Evolve<T, WritePolicy, ReadPolicy>` template wrapper that:
+
+1. **Wraps values** with policy metadata
+2. **Tracks access** - Records when values are written or read
+3. **Validates at runtime** during serialization/deserialization
+4. **Invokes callbacks** when policies are violated
+
+### The Evolve Template
+
+```cpp
+template<class T, EvolvePolicy WritePolicy = EvolvePolicy::Required,
+                  EvolvePolicy ReadPolicy = EvolvePolicy::Optional>
+class Evolve { /* ... */ };
+```
+
+### Policy Enforcement Flow
+
+**Write Path (Serialization):**
+1. Values with evolve policies go through evolve visitor
+2. Evolve visitor calls into policy manager to evaluate write policy 
+3. Policy manager invokes `evolvePolicyViolated` callback if policy fails based on remote capability and written state
+4. Serialize field if the remote supports it, regardless of whether the policy fails or passes
+
+**Read Path (Deserialization):**
+1. Values with evolve policies go through evolve visitor
+2. Deserialize the field value from the message if the remote supports it
+3. Evolve visitor calls into policy manager to evaluate read policy
+4. Policy manager applies enum policy if applicable, invokes `evolvePolicyViolated` callback if enum policy fails
+5. After method/call completes, evolve visitor makes a second post-invoke call to policy manager
+6. Policy manager invokes `evolvePolicyViolated` callback if policy fails based on remote capability and read state
+
+### Remote Capability Queries
+
+Generated code provides runtime capability checks:
+
+```cpp
+namespace remoteCaps {
+   namespace hasStructField {
+      namespace MyNamespace {
+         namespace MyStruct {
+            bool myField() { ... };  // True if remote has MyNamespace::MyStruct::myField
+         }
+      }
+   }
+    
+   namespace hasEnum {
+      namespace MyNamespace {
+         bool MyEnum(EnumCaps type, MyEnum value);
+      }
+   }
+}
+```
+
+These functions query the negotiated schema to determine remote capabilities.
+
+### Copy Tracking
+
+The `Evolve` wrapper tracks copies of parameters and the return value in order to avoid false violations:
+
+```cpp
+// Client side
+void processWeather()
+{
+    WeatherInfo info = WeatherService::getWeather(); // Copy 1
+    WeatherInfo localCopy = info;                    // Copy 2
+    
+    // Reading from ANY copy satisfies the requirement
+    float temp = localCopy.temperature;  // ✓ Read satisfied
+}
+```
+
+This is especially important for return values that may be copied multiple times.
+
+### Performance Considerations
+
+- Each `Evolve` wrapper adds 20 bytes to the wrapped type (for reference, the size of class `std::string` is 40 bytes)
+- Policy checks add ~33ns overhead per field on typical hardware
+- Checks only execute when policies are present
+- Zero overhead when using type alias `template<class T> using NoPolicy = T;`
+
+### Enum Validation
+
+For enum types, additional validation checks:
+
+**`_EnumValue`** - Checks if remote has the numeric value:
+```cpp
+// Local
+enum class MyEnum { Foo = 0, Bar = 1, Baz = 2 };
+
+// Remote
+enum class MyEnum { Foo = 0, Bar = 1 };
+```
+It is a policy violation if we send `MyEnum::Baz` to the remote since the remote does not have an enum value of `2`.
+
+**`_EnumStrict`** - Checks value and name:
+```cpp
+// Local
+enum class MyEnum { Foo = 0, Bar = 1, Baz = 2 };
+
+// Remote
+enum class MyEnum { Foo = 0, Bar = 1, Quiz = 2, Baz = 3 }; // Refactored
+```
+It is a policy violation if we send `MyEnum::Baz` to the remote since, while the remote has an enum value of `2` (`Quiz`), the name does not match `Baz`.
+
+**`_EnumFlags`** - Checks all set bits:
+```cpp
+// Local
+enum class MyEnum { Foo = 1 << 0, Bar = 1 << 1, Baz = 1 << 2 };
+
+// Remote
+enum class MyEnum { Foo = 1 << 0, Bar = 1 << 1 };
+```
+It is a policy violation if we send `MyEnum::Foo | MyEnum::Baz` to the remote since the remote does not have all the bit flags to make up the value of `0b101`.
+
+**`_EnumFlagsStrict`** - Checks all set bits and names:
+```cpp
+// Local
+enum class MyEnum {
+   Foo = 1 << 0,
+   Bar = 1 << 1,
+   Baz = 1 << 2
+};
+
+// Remote
+enum class MyEnum {
+   Foo  = 1 << 0,
+   Bar  = 1 << 1,
+   Quiz = 1 << 2,
+   Baz  = 1 << 3  // Refactored
+};
+```
+It is a policy violation if we send `MyEnum::Foo | MyEnum::Baz` to the remote since, while the remote has all set bits, the names of the set values do not match.
+
+### Violation Callback
+
+Default callback logs to active logger:
+```cpp
+void Callbacks::evolvePolicyViolated(
+    EndpointWeakRef ep,
+    const EvolvePolicyViolation& violation) {
+    
+    string msg = ...
+
+    // Log detailed message with fix suggestions
+    logError("{}", msg);
+}
+```
+
+Custom callbacks can:
+- Throw exceptions
+- Put endpoint into faulted state
+- Record metrics/telemetry
+- Ignore certain violations
+
 Guidelines:
 
 1. Never rely on catching `UndefinedRemoteMethodError` for normal version branching – treat it as a signal you *forgot* a capability guard.
 2. Remove legacy fields/methods only after telemetry shows negligible calls from versions lacking the replacement.
 3. Prefer additive evolution (add new field, keep old until sunset window ends; move deprecated members to struct tail with a comment so it is easy to track and maintain).
 
-## 18. Future Extension Points (Indicative)
+---
+## 19. Future Extension Points (Indicative)
 
 - Cross-language bindings via same negotiated schema (Rust, Python modern re-implementation, etc.).
 - Observability hooks (structured tracing, OpenTelemetry exporters) leveraging existing queue stats & latency capture.
 
 ---
-## 19. Key Public Interfaces Snapshot
+## 20. Key Public Interfaces Snapshot
 (See `api-reference.md` for per-symbol detail.)
 
 - Endpoint lifecycle: `Endpoint`, `EndpointCtx`, `EndpointConfig`, stats & queue introspection.
@@ -255,5 +452,5 @@ Guidelines:
 - Discovery: `ConnectionInfo`, `ServiceInstance`, `InstanceLoadInfo` (registry aware set).
 
 ---
-## 20. Summary
+## 21. Summary
 ALR achieves its performance and flexibility goals by shifting complexity from per-call runtime work (tag parsing, dynamic reflection, multi-layer protocol stacks) to a one-time connection handshake and compile-time code generation. The result: a lean hot path (serialize raw native layouts directly) and a developer experience indistinguishable from local C++ method invocation—while enabling distributed, evolvable systems with built-in discovery.

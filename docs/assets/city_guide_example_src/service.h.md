@@ -61,10 +61,10 @@ struct CityReviewSummary
 
 struct CityRouteSummary
 {
-   uint32 pointCount;
-   uint32 featureCount;
-   uint32 distance;
-   uint32 elapsedTime;
+   uint32_t pointCount;
+   uint32_t featureCount;
+   uint32_t distance;
+   uint32_t elapsedTime;
 };
 
 
@@ -163,9 +163,9 @@ public:
 
    WeatherForecast getWeatherForecast(const Location& location);
 
-   static sint64 doSomeWork(uint32 millsecs);
+   static int64_t doSomeWork(uint32_t millsecs);
 
-   static uint64 add(uint64 a, uint64 b);
+   static uint64_t add(uint64_t a, uint64_t b);
 
 private:
    std::string _username;

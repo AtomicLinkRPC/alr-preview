@@ -38,13 +38,13 @@ package benchmark;
 //...
 
 message SmallMessage {
-	int32 value = 1;
+	int32  value = 1;
 	string str = 2;
 }
 
 message MediumMessage {
    uint32 val1 = 1;
-   int64 val2 = 2;
+   int64  val2 = 2;
 
    string str1 = 3;
    string str2 = 4;
@@ -59,10 +59,10 @@ message MediumMessage {
 }
 
 message LargeMessage {
-   int32 sint32_val = 1;
-   uint32 uint32_val = 2;
-   int64 sint64_val = 3;
-   uint64 uint64_val = 4;
+   int32    sint32_val = 1;
+   uint32_t uint32_val = 2;
+   int64    sint64_val = 3;
+   uint64   uint64_val = 4;
    float  float_val = 5;
    double double_val = 6;
    bool   bool_val = 7;
@@ -70,7 +70,7 @@ message LargeMessage {
 
    string string_val = 9;
 
-   repeated uint32 uint32_list = 10;
+   repeated uint32_t uint32_list = 10;
    bytes byte_buffer = 11;
    repeated string string_list = 12;
 
@@ -185,19 +185,19 @@ LargeMsgList CreateLargeMessageList(int count)
 ```cpp
 struct SmallStruct
 {
-   uint32 val1;
+   uint32_t val1;
    std::string str;
 };
 
 struct MediumStruct
 {
-   sint32 val1;
-   uint32 val2;
+   int32_t  val1;
+   uint32_t val2;
 
    std::string str1;
    std::string str2;
 
-   std::vector<uint32> vec1;
+   std::vector<uint32_t> vec1;
    std::vector<std::string> vec2;
 
    float floatVal;
@@ -208,10 +208,10 @@ struct MediumStruct
 
 struct LargeStruct
 {
-   sint32 sint32Val;
-   uint32 uint32Val;
-   sint64 sint64Val;
-   uint64 uint64Val;
+   int32_t  sint32Val;
+   uint32_t uint32Val;
+   int64_t  sint64Val;
+   uint64_t uint64Val;
    float  floatVal;
    double doubleVal;
    bool   boolVal;
@@ -219,8 +219,8 @@ struct LargeStruct
 
    std::string stringVal;
 
-   std::vector<uint32> uint32Vec;
-   std::vector<uint8> byteBuffer;
+   std::vector<uint32_t> uint32Vec;
+   std::vector<uint8_t> byteBuffer;
    std::vector<std::string> stringVec;
 
    SmallStruct smallStruct;

@@ -20,13 +20,22 @@ plugins:
   - search
 nav:
   - Welcome: index.md
-  - Overview: overview.md
-  - User Guide: user-guide.md
-  - Examples: examples.md
-  - Technical Documentation: technical.md
-  - API Reference: api-reference.md
-  - Benchmarks: benchmarks.md
-  - Promotional: promotional.md
+  - Getting Started:
+    - Overview: overview.md
+    - Building from Source: building-from-source.md    
+    - User Guide: user-guide.md
+  - Core Reference:
+    - API Reference - Core: api-reference-core.md
+    - API Reference - Advanced: api-reference-advanced.md
+    - Examples: examples.md
+  - Deep Dives:
+    - Technical Documentation: technical.md
+    - API Evolve Policies: evolve-policies.md
+    - Migration Guide: migration-guide.md
+    - Troubleshooting: troubleshooting.md
+  - Performance & Promotion:
+    - Benchmarks: benchmarks.md
+    - Promotional: promotional.md
   - Comprehensive Guide: atomic-link-rpc.md
   - Raw Results (localhost): assets/results/raw_results_localhost.md
   - Raw Results (remote): assets/results/raw_results_remote.md

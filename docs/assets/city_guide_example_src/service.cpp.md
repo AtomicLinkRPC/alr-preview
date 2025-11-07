@@ -139,7 +139,7 @@ void CityGuideService::streamPointsOfInterest(CityGuideClient& client,
 }
 
 
-Result<PointOfInterestReviews, std::string>
+Result<PointOfInterestReviews, string>
 CityGuideService::getPointOfInterestReviews(PointOfInterest poi)
 {
    PointOfInterestReviews review = {};
@@ -148,7 +148,7 @@ CityGuideService::getPointOfInterestReviews(PointOfInterest poi)
 }
 
 
-AsyncRef<Result<std::vector<PointOfInterest>, string>>
+AsyncRef<Result<vector<PointOfInterest>, string>>
 CityGuideService::getPointsOfInterest(const Area& area)
 {
    vector<PointOfInterest> pois;
@@ -272,7 +272,7 @@ WeatherForecast CityGuideService::getWeatherForecast(const Location& location)
 }
 
 
-sint64 CityGuideService::doSomeWork(uint32 millsecs)
+int64_t CityGuideService::doSomeWork(uint32 millsecs)
 {
    auto startTime = chrono::system_clock::now();
    this_thread::sleep_for(chrono::milliseconds(millsecs));
@@ -281,7 +281,7 @@ sint64 CityGuideService::doSomeWork(uint32 millsecs)
 }
 
 
-uint64 CityGuideService::add(uint64 a, uint64 b)
+uint64_t CityGuideService::add(uint64_t a, uint64_t b)
 {
    return a + b;
 }
